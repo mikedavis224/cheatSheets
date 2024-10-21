@@ -1,0 +1,253 @@
+# 1. Common Protocols and Ports
+
+    # 1. Common Networking Protocols and Associated Ports
+
+        # HTTP (Web Traffic)
+            Protocol: HTTP
+            Port: 80
+
+        # HTTPS (Secure Web Traffic)
+            Protocol: HTTPS
+            Port: 443
+
+        # FTP (File Transfer Protocol)
+            Protocol: FTP
+            Ports: 21 (Control), 20 (Data)
+
+        # SSH (Secure Shell)
+            Protocol: SSH
+            Port: 22
+
+        # SMTP (Simple Mail Transfer Protocol)
+            Protocol: SMTP
+            Ports: 25 (Standard), 587 (TLS), 465 (SSL)
+
+        # DNS (Domain Name System)
+            Protocol: DNS
+            Port: 53
+
+        # DHCP (Dynamic Host Configuration Protocol)
+            Protocol: DHCP
+            Ports: 67 (Server), 68 (Client)
+
+        # RDP (Remote Desktop Protocol)
+            Protocol: RDP
+            Port: 3389
+
+        # Telnet
+            Protocol: Telnet
+            Port: 23
+
+        # SNMP (Simple Network Management Protocol)
+            Protocol: SNMP
+            Ports: 161 (Queries), 162 (Traps)
+
+        # SMB (Server Message Block)
+            Protocol: SMB
+            Ports: 445 (Direct), 137-139 (NetBIOS)
+
+# 2. Basic Network Commands (Windows Command Line)
+
+    # 1. Testing Network Connectivity
+
+        # Ping a Host to Test Connectivity
+            ping google.com
+
+        # Ping with Continuous Request
+            ping google.com -t
+
+        # Check Route to a Host (Trace Route)
+            tracert google.com
+
+        # Test DNS Resolution
+            nslookup google.com
+
+        # Test DNS Resolution for Specific DNS Server
+            nslookup google.com 8.8.8.8
+
+    # 2. Viewing Network Configuration
+
+        # View Network Interface Information (IP Address, Subnet, Gateway)
+            ipconfig
+
+        # View Detailed Network Configuration (Including MAC, DNS, etc.)
+            ipconfig /all
+
+        # Flush DNS Resolver Cache
+            ipconfig /flushdns
+
+        # Release IP Address (for DHCP)
+            ipconfig /release
+
+        # Renew IP Address (for DHCP)
+            ipconfig /renew
+
+    # 3. Network Routing and Ports
+
+        # View Active Connections and Open Ports
+            netstat -an
+
+        # View Routing Table
+            route print
+
+        # Add Static Route
+            route add 192.168.1.0 mask 255.255.255.0 192.168.0.1
+
+        # Delete Static Route
+            route delete 192.168.1.0
+
+    # 4. Testing Remote Ports
+
+        # Test Remote Port Connection with Telnet
+            telnet google.com 80
+
+        # Test Remote Port Connection with PowerShell
+            Test-NetConnection google.com -Port 80
+
+# 3. PowerShell Network Management Commands
+
+    # 1. Viewing Network Adapter Information
+
+        # Get All Network Interfaces
+            Get-NetAdapter
+
+        # Get Detailed Network Configuration for All Interfaces
+            Get-NetIPAddress
+
+        # Get IP Configuration for a Specific Interface
+            Get-NetIPAddress -InterfaceAlias "Ethernet0"
+
+    # 2. Configuring Network Adapters
+
+        # Set a Static IP Address
+            New-NetIPAddress -InterfaceAlias "Ethernet0" -IPAddress 192.168.1.100 -PrefixLength 24 -DefaultGateway 192.168.1.1
+
+        # Set DNS Servers for a Specific Interface
+            Set-DnsClientServerAddress -InterfaceAlias "Ethernet0" -ServerAddresses ("8.8.8.8", "8.8.4.4")
+
+        # Disable a Network Interface
+            Disable-NetAdapter -Name "Ethernet0"
+
+        # Enable a Network Interface
+            Enable-NetAdapter -Name "Ethernet0"
+
+    # 3. Managing Firewall Rules
+
+        # View All Firewall Rules
+            Get-NetFirewallRule
+
+        # Add a New Firewall Rule to Allow RDP (Port 3389)
+            New-NetFirewallRule -DisplayName "Allow RDP" -Direction Inbound -LocalPort 3389 -Protocol TCP -Action Allow
+
+        # Remove a Firewall Rule
+            Remove-NetFirewallRule -DisplayName "Allow RDP"
+
+    # 4. Monitoring and Diagnosing Network Issues
+
+        # Test Connectivity to a Host (Similar to Ping)
+            Test-NetConnection google.com
+
+        # Test Specific Port Connectivity
+            Test-NetConnection google.com -Port 443
+
+        # Get Detailed Network Statistics
+            Get-NetAdapterStatistics -Name "Ethernet0"
+
+        # Get TCP Connections
+            Get-NetTCPConnection
+
+        # Start Network Packet Capture (Requires Admin Privileges)
+            New-PktMonCapture -Name "TestCapture" -OutputPath "C:\Capture.etl"
+            Start-PktMonCapture
+
+        # Stop Network Packet Capture
+            Stop-PktMonCapture
+
+# 4. Network Shares and File Sharing
+
+    # 1. Managing Network Shares (PowerShell)
+
+        # View All Network Shares on a System
+            Get-SmbShare
+
+        # Create a New Network Share
+            New-SmbShare -Name "SharedFolder" -Path "C:\Path\To\Folder" -FullAccess "Everyone"
+
+        # Remove a Network Share
+            Remove-SmbShare -Name "SharedFolder"
+
+        # View Sessions Connected to a Share
+            Get-SmbSession
+
+        # View Open Files on a Network Share
+            Get-SmbOpenFile
+
+    # 2. Mapping Network Drives
+
+        # Map a Network Drive to a Specific Folder
+            New-PSDrive -Name "Z" -PSProvider FileSystem -Root "\\Server\SharedFolder" -Persist
+
+        # Remove a Mapped Network Drive
+            Remove-PSDrive -Name "Z"
+
+# 5. DNS Management (PowerShell)
+
+    # 1. Querying DNS
+
+        # Test DNS Resolution for a Specific Host
+            Resolve-DnsName google.com
+
+        # Test DNS Resolution with a Specific DNS Server
+            Resolve-DnsName google.com -Server 8.8.8.8
+
+    # 2. Viewing DNS Client Cache
+
+        # View Cached DNS Entries
+            Get-DnsClientCache
+
+        # Clear DNS Cache
+            Clear-DnsClientCache
+
+    # 3. Managing DNS Client Settings
+
+        # View DNS Servers for a Network Interface
+            Get-DnsClientServerAddress
+
+        # Set DNS Server for a Specific Network Interface
+            Set-DnsClientServerAddress -InterfaceAlias "Ethernet0" -ServerAddresses ("8.8.8.8", "1.1.1.1")
+
+# 6. Network Monitoring and Performance
+
+    # 1. Monitoring Network Traffic and Bandwidth Usage
+
+        # View Real-Time Network Statistics (PowerShell)
+            Get-NetAdapterStatistics
+
+        # View Ethernet Statistics and Errors
+            netstat -e
+
+        # Monitor Bandwidth Usage by Application
+            Get-NetAdapter | Select-Object Name, ReceiveLinkSpeed, TransmitLinkSpeed
+
+    # 2. Capturing and Analyzing Network Packets
+
+        # Start a Network Packet Capture (Packet Monitor)
+            New-PktMonCapture -Name "TestCapture" -OutputPath "C:\Capture.etl"
+            Start-PktMonCapture
+
+        # Stop the Packet Capture
+            Stop-PktMonCapture
+
+        # Convert and View the Packet Capture in Text Format
+            pktmon format PktMon.etl -o capture.txt
+
+    # 3. Tracing Network Routes and Latency
+
+        # Trace the Route to a Remote Host (PowerShell)
+            Test-NetConnection -TraceRoute google.com
+
+        # Trace the Route to a Remote Host (CMD)
+            tracert google.com
+
+        # View TCP Connection Statistics
+            netstat -s

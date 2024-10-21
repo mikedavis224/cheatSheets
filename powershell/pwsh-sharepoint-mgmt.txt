@@ -1,0 +1,184 @@
+# 1. Connecting to SharePoint Online
+
+    # Install SharePoint Online Management Shell Module
+        Install-Module -Name Microsoft.Online.SharePoint.PowerShell
+
+    # Connect to SharePoint Online
+        Connect-SPOService -Url https://yourtenant-admin.sharepoint.com
+
+    # Disconnect from SharePoint Online
+        Disconnect-SPOService
+
+# 2. Site Collection Management
+
+    # 1. Creating and Managing Site Collections
+
+        # Get All Site Collections
+            Get-SPOSite
+
+        # Get a Specific Site Collection
+            Get-SPOSite -Identity https://yourtenant.sharepoint.com/sites/yoursite
+
+        # Create a New Site Collection (Team Site)
+            New-SPOSite -Url https://yourtenant.sharepoint.com/sites/newsite -Owner admin@domain.com -StorageQuota 1024 -Title "New Team Site" -Template STS#0
+
+        # Create a Communication Site Collection
+            New-SPOSite -Url https://yourtenant.sharepoint.com/sites/commsite -Owner admin@domain.com -Title "New Communication Site" -Template SITEPAGEPUBLISHING#0
+
+        # Remove a Site Collection
+            Remove-SPOSite -Identity https://yourtenant.sharepoint.com/sites/yoursite
+
+        # Restore a Deleted Site Collection
+            Restore-SPODeletedSite -Identity https://yourtenant.sharepoint.com/sites/yoursite
+
+        # Get Deleted Site Collections
+            Get-SPODeletedSite
+
+        # Set Storage Quota for a Site Collection
+            Set-SPOSite -Identity https://yourtenant.sharepoint.com/sites/yoursite -StorageQuota 2048
+
+# 3. Site Permissions Management
+
+    # 1. Managing Users and Groups in Site Collections
+
+        # Get Users in a Site Collection
+            Get-SPOUser -Site https://yourtenant.sharepoint.com/sites/yoursite
+
+        # Add a User to a Site Collection
+            Set-SPOUser -Site https://yourtenant.sharepoint.com/sites/yoursite -LoginName user@domain.com -IsSiteCollectionAdmin $true
+
+        # Remove a User from a Site Collection
+            Remove-SPOUser -Site https://yourtenant.sharepoint.com/sites/yoursite -LoginName user@domain.com
+
+        # Add a SharePoint Group to a Site Collection
+            New-SPOSiteGroup -Site https://yourtenant.sharepoint.com/sites/yoursite -Group "NewGroup" -PermissionLevels "Full Control"
+
+        # Add a User to a SharePoint Group
+            Add-SPOUser -Site https://yourtenant.sharepoint.com/sites/yoursite -LoginName user@domain.com -Group "NewGroup"
+
+        # Remove a User from a SharePoint Group
+            Remove-SPOUser -Site https://yourtenant.sharepoint.com/sites/yoursite -LoginName user@domain.com -Group "NewGroup"
+
+    # 2. Managing Site Collection Administrators
+
+        # Get Site Collection Administrators
+            Get-SPOUser -Site https://yourtenant.sharepoint.com/sites/yoursite | Where-Object { $_.IsSiteCollectionAdmin -eq $true }
+
+        # Add a Site Collection Administrator
+            Set-SPOUser -Site https://yourtenant.sharepoint.com/sites/yoursite -LoginName admin@domain.com -IsSiteCollectionAdmin $true
+
+        # Remove a Site Collection Administrator
+            Set-SPOUser -Site https://yourtenant.sharepoint.com/sites/yoursite -LoginName admin@domain.com -IsSiteCollectionAdmin $false
+
+# 4. Document Library and List Management
+
+    # 1. Managing Document Libraries
+
+        # Get All Document Libraries in a Site
+            Get-SPOList -Identity https://yourtenant.sharepoint.com/sites/yoursite
+
+        # Create a New Document Library
+            Add-SPOList -Site https://yourtenant.sharepoint.com/sites/yoursite -Title "Documents" -Template DocumentLibrary
+
+        # Remove a Document Library
+            Remove-SPOList -Site https://yourtenant.sharepoint.com/sites/yoursite -Identity "Documents"
+
+        # Get Document Library Permissions
+            Get-SPOUser -Site https://yourtenant.sharepoint.com/sites/yoursite -Group "Documents"
+
+    # 2. Managing Lists
+
+        # Create a New List
+            Add-SPOList -Site https://yourtenant.sharepoint.com/sites/yoursite -Title "Task List" -Template Tasks
+
+        # Remove a List
+            Remove-SPOList -Site https://yourtenant.sharepoint.com/sites/yoursite -Identity "Task List"
+
+        # Add a List Item
+            Add-SPOListItem -Site https://yourtenant.sharepoint.com/sites/yoursite -List "Task List" -Values @{"Title" = "Task1"; "AssignedTo" = "user@domain.com"}
+
+        # Get All Items in a List
+            Get-SPOListItem -Site https://yourtenant.sharepoint.com/sites/yoursite -List "Task List"
+
+# 5. Managing External Sharing
+
+    # 1. Managing External Sharing Settings
+
+        # Enable External Sharing for a Site
+            Set-SPOSite -Identity https://yourtenant.sharepoint.com/sites/yoursite -SharingCapability ExternalUserSharingOnly
+
+        # Disable External Sharing for a Site
+            Set-SPOSite -Identity https://yourtenant.sharepoint.com/sites/yoursite -SharingCapability Disabled
+
+        # Get External Sharing Settings for a Site
+            Get-SPOSite -Identity https://yourtenant.sharepoint.com/sites/yoursite | Select SharingCapability
+
+    # 2. Managing Sharing Links
+
+        # Create a Sharing Link for a Document
+            Grant-SPOUserFileAccess -Site https://yourtenant.sharepoint.com/sites/yoursite -File "Shared Documents/Report.docx" -LoginName externaluser@domain.com -Role View
+
+        # Revoke a Sharing Link
+            Revoke-SPOUserFileAccess -Site https://yourtenant.sharepoint.com/sites/yoursite -File "Shared Documents/Report.docx"
+
+# 6. Hub Sites and Associated Sites
+
+    # 1. Managing Hub Sites
+
+        # Register a Site as a Hub Site
+            Register-SPOHubSite -Site https://yourtenant.sharepoint.com/sites/hubsite
+
+        # Get All Hub Sites
+            Get-SPOHubSite
+
+        # Remove a Hub Site
+            Unregister-SPOHubSite -Site https://yourtenant.sharepoint.com/sites/hubsite
+
+    # 2. Managing Hub Site Associations
+
+        # Associate a Site with a Hub Site
+            Add-SPOHubSiteAssociation -Site https://yourtenant.sharepoint.com/sites/yoursite -HubSite https://yourtenant.sharepoint.com/sites/hubsite
+
+        # Remove a Hub Site Association
+            Remove-SPOHubSiteAssociation -Site https://yourtenant.sharepoint.com/sites/yoursite
+
+# 7. Managing Site Usage and Storage
+
+    # 1. Monitoring Site Usage
+
+        # Get Site Storage Quota and Usage
+            Get-SPOSite -Identity https://yourtenant.sharepoint.com/sites/yoursite | Select StorageQuota, StorageUsageCurrent
+
+        # Get Site Activity Report
+            Get-SPOSiteUsageReport -Identity https://yourtenant.sharepoint.com/sites/yoursite -Days 30
+
+    # 2. Managing Site Storage
+
+        # Set Storage Quota for a Site
+            Set-SPOSite -Identity https://yourtenant.sharepoint.com/sites/yoursite -StorageQuota 2048
+
+        # Get Storage Usage for All Sites
+            Get-SPOSite | Select Title, StorageUsageCurrent, StorageQuota
+
+# 8. SharePoint Online Reporting
+
+    # 1. Reporting on Site Collections
+
+        # Get a List of All Site Collections and Export to CSV
+            Get-SPOSite | Select Title, Url, Owner, StorageUsageCurrent | Export-Csv -Path "C:\Reports\SiteCollections.csv" -NoTypeInformation
+
+    # 2. Reporting on External Users
+
+        # Get a List of All External Users
+            Get-SPOExternalUser
+
+        # Export External Users to CSV
+            Get-SPOExternalUser | Export-Csv -Path "C:\Reports\ExternalUsers.csv" -NoTypeInformation
+
+    # 3. Audit Logs and Compliance Reports
+
+        # Get SharePoint Online Audit Log
+            Search-UnifiedAuditLog -StartDate "01/01/2024" -EndDate "01/31/2024" -RecordType SharePointFileOperation
+
+        # Export Audit Logs to CSV
+            Search-UnifiedAuditLog -StartDate "01/01/2024" -EndDate "01/31/2024" -RecordType SharePointFileOperation | Export-Csv -Path "C:\Reports\AuditLogs.csv" -NoTypeInformation

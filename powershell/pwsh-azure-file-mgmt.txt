@@ -1,0 +1,189 @@
+# 1. Connecting to Azure
+
+    # Install Azure PowerShell Module (Az Module)
+        Install-Module -Name Az -AllowClobber -Force
+
+    # Connect to Azure Account
+        Connect-AzAccount
+
+    # Select a Specific Azure Subscription
+        Get-AzSubscription
+        Select-AzSubscription -SubscriptionId "your-subscription-id"
+
+# 2. Storage Account Management
+
+    # 1. Creating and Managing Storage Accounts
+
+        # Create a New Storage Account
+            New-AzStorageAccount -ResourceGroupName "ResourceGroupName" -Name "mystorageaccount" -Location "EastUS" -SkuName "Standard_LRS" -Kind "StorageV2"
+
+        # Get All Storage Accounts in a Resource Group
+            Get-AzStorageAccount -ResourceGroupName "ResourceGroupName"
+
+        # Get a Specific Storage Account
+            Get-AzStorageAccount -ResourceGroupName "ResourceGroupName" -Name "mystorageaccount"
+
+        # Update Storage Account Settings (e.g., Allow Blob Public Access)
+            Update-AzStorageAccount -ResourceGroupName "ResourceGroupName" -Name "mystorageaccount" -AllowBlobPublicAccess $false
+
+        # Remove a Storage Account
+            Remove-AzStorageAccount -ResourceGroupName "ResourceGroupName" -Name "mystorageaccount"
+
+    # 2. Managing Storage Account Keys and Access
+
+        # Get Storage Account Keys
+            Get-AzStorageAccountKey -ResourceGroupName "ResourceGroupName" -Name "mystorageaccount"
+
+        # Regenerate Storage Account Keys
+            New-AzStorageAccountKey -ResourceGroupName "ResourceGroupName" -Name "mystorageaccount" -KeyName "key1"
+
+        # Create a Storage Context (used for operations like Blob and File management)
+            $storageAccount = Get-AzStorageAccount -ResourceGroupName "ResourceGroupName" -Name "mystorageaccount"
+            $ctx = $storageAccount.Context
+
+# 3. Blob Storage Management
+
+    # 1. Blob Containers
+
+        # Create a New Blob Container
+            New-AzStorageContainer -Name "mycontainer" -Context $ctx -Permission Blob
+
+        # Get All Blob Containers in a Storage Account
+            Get-AzStorageContainer -Context $ctx
+
+        # Get a Specific Blob Container
+            Get-AzStorageContainer -Context $ctx -Name "mycontainer"
+
+        # Remove a Blob Container
+            Remove-AzStorageContainer -Name "mycontainer" -Context $ctx
+
+    # 2. Blob Management
+
+        # Upload a Blob to a Container
+            Set-AzStorageBlobContent -File "C:\path\to\file.txt" -Container "mycontainer" -Blob "file.txt" -Context $ctx
+
+        # Download a Blob from a Container
+            Get-AzStorageBlobContent -Container "mycontainer" -Blob "file.txt" -Destination "C:\path\to\download" -Context $ctx
+
+        # List All Blobs in a Container
+            Get-AzStorageBlob -Container "mycontainer" -Context $ctx
+
+        # Remove a Blob
+            Remove-AzStorageBlob -Blob "file.txt" -Container "mycontainer" -Context $ctx
+
+        # Set Blob Tier (Hot, Cool, Archive)
+            Set-AzStorageBlob -Blob "file.txt" -Container "mycontainer" -StandardBlobTier Cool -Context $ctx
+
+# 4. File Storage Management
+
+    # 1. File Shares
+
+        # Create a New File Share
+            New-AzStorageShare -Name "myfileshare" -Context $ctx
+
+        # Get All File Shares in a Storage Account
+            Get-AzStorageShare -Context $ctx
+
+        # Get a Specific File Share
+            Get-AzStorageShare -Context $ctx -Name "myfileshare"
+
+        # Remove a File Share
+            Remove-AzStorageShare -Name "myfileshare" -Context $ctx
+
+    # 2. File Management
+
+        # Upload a File to a File Share
+            Set-AzStorageFileContent -ShareName "myfileshare" -Source "C:\path\to\file.txt" -Path "/"
+
+        # Download a File from a File Share
+            Get-AzStorageFileContent -ShareName "myfileshare" -Path "file.txt" -Destination "C:\path\to\download" -Context $ctx
+
+        # List All Files in a File Share
+            Get-AzStorageFile -ShareName "myfileshare" -Context $ctx
+
+        # Remove a File from a File Share
+            Remove-AzStorageFile -ShareName "myfileshare" -Path "file.txt" -Context $ctx
+
+# 5. Table Storage Management
+
+    # 1. Managing Tables
+
+        # Create a New Table
+            New-AzStorageTable -Name "mytable" -Context $ctx
+
+        # Get All Tables in a Storage Account
+            Get-AzStorageTable -Context $ctx
+
+        # Get a Specific Table
+            Get-AzStorageTable -Context $ctx -Name "mytable"
+
+        # Remove a Table
+            Remove-AzStorageTable -Name "mytable" -Context $ctx
+
+    # 2. Managing Table Entities
+
+        # Add a New Entity to a Table
+            $entity = New-Object PSObject -Property @{
+                PartitionKey = "partition1"
+                RowKey = "row1"
+                Property1 = "value1"
+                Property2 = "value2"
+            }
+            New-AzStorageTableRow -tableName "mytable" -entity $entity -Context $ctx
+
+        # Get All Entities in a Table
+            Get-AzStorageTableRowAll -TableName "mytable" -Context $ctx
+
+        # Get a Specific Entity from a Table
+            Get-AzStorageTableRowByPartitionKeyRowKey -TableName "mytable" -PartitionKey "partition1" -RowKey "row1" -Context $ctx
+
+        # Remove an Entity from a Table
+            Remove-AzStorageTableRow -TableName "mytable" -PartitionKey "partition1" -RowKey "row1" -Context $ctx
+
+# 6. Queue Storage Management
+
+    # 1. Managing Queues
+
+        # Create a New Queue
+            New-AzStorageQueue -Name "myqueue" -Context $ctx
+
+        # Get All Queues in a Storage Account
+            Get-AzStorageQueue -Context $ctx
+
+        # Get a Specific Queue
+            Get-AzStorageQueue -Name "myqueue" -Context $ctx
+
+        # Remove a Queue
+            Remove-AzStorageQueue -Name "myqueue" -Context $ctx
+
+    # 2. Managing Queue Messages
+
+        # Add a Message to a Queue
+            Add-AzStorageQueueMessage -QueueName "myqueue" -MessageText "This is a test message" -Context $ctx
+
+        # Get Messages from a Queue
+            Get-AzStorageQueueMessage -QueueName "myqueue" -Context $ctx
+
+        # Peek at Messages in a Queue (without removing)
+            Peek-AzStorageQueueMessage -QueueName "myqueue" -Context $ctx
+
+        # Remove a Message from a Queue
+            $message = Get-AzStorageQueueMessage -QueueName "myqueue" -Context $ctx
+            Remove-AzStorageQueueMessage -QueueName "myqueue" -MessageId $message.Id -PopReceipt $message.PopReceipt -Context $ctx
+
+# 7. Shared Access Signatures (SAS)
+
+    # 1. Generating SAS Tokens
+
+        # Generate a SAS Token for a Blob Container
+            New-AzStorageContainerSASToken -Name "mycontainer" -Permission rwd -ExpiryTime (Get-Date).AddHours(1) -Context $ctx
+
+        # Generate a SAS Token for a File Share
+            New-AzStorageShareSASToken -ShareName "myfileshare" -Permission rwd -ExpiryTime (Get-Date).AddHours(1) -Context $ctx
+
+    # 2. Using SAS Tokens
+
+        # Use SAS Token to Access a Blob
+            $sasToken = New-AzStorageContainerSASToken -Name "mycontainer" -Permission rwd -ExpiryTime (Get-Date).AddHours(1) -Context $ctx
+            $blobUri = "https://mystorageaccount.blob.core.windows.net/mycontainer/file.txt" + $sasToken
+            Invoke-WebRequest -Uri $blobUri -OutFile "C:\path\to\download\file.txt"

@@ -1,0 +1,187 @@
+# 1. Connecting to Microsoft Endpoint Manager
+
+    # Install the Microsoft Graph Intune PowerShell SDK
+        Install-Module -Name Microsoft.Graph.Intune
+
+    # Connect to Microsoft Graph API (Intune)
+        Connect-MSGraph
+
+    # Confirm Connection and Current Context
+        Get-MgUser -UserId yourUPN@domain.com
+
+# 2. Device Management
+
+    # 1. Listing and Managing Devices
+
+        # Get a List of All Managed Devices
+            Get-IntuneManagedDevice
+
+        # Get a Specific Device by ID
+            Get-IntuneManagedDevice -ManagedDeviceId "device-id"
+
+        # Get Devices by User Principal Name (UPN)
+            Get-IntuneManagedDevice | Where-Object { $_.UserPrincipalName -eq "user@domain.com" }
+
+        # Rename a Managed Device
+            Update-IntuneManagedDevice -ManagedDeviceId "device-id" -DeviceName "NewDeviceName"
+
+        # Retire a Device (Removes Company Data)
+            Invoke-IntuneManagedDeviceRetire -ManagedDeviceId "device-id"
+
+        # Wipe a Device
+            Invoke-IntuneManagedDeviceWipe -ManagedDeviceId "device-id"
+
+        # Reboot a Device
+            Invoke-IntuneManagedDeviceRebootNow -ManagedDeviceId "device-id"
+
+# 3. Application Management
+
+    # 1. Managing Apps in Intune
+
+        # Get a List of All Managed Apps
+            Get-IntuneMobileApp
+
+        # Get a Specific App by ID
+            Get-IntuneMobileApp -MobileAppId "app-id"
+
+        # Add a New Managed App (Example: Win32 App)
+            Add-IntuneMobileApp -DisplayName "MyApp" -Publisher "MyPublisher" -FileName "C:\path\to\installer.msi" -AppInstallContext "device"
+
+        # Remove a Managed App
+            Remove-IntuneMobileApp -MobileAppId "app-id"
+
+    # 2. Managing App Assignments
+
+        # Get App Assignments
+            Get-IntuneMobileAppAssignment -MobileAppId "app-id"
+
+        # Assign an App to a Group
+            Add-IntuneMobileAppAssignment -MobileAppId "app-id" -TargetGroupId "group-id" -InstallIntent "available"
+
+        # Remove an App Assignment from a Group
+            Remove-IntuneMobileAppAssignment -MobileAppId "app-id" -TargetGroupId "group-id"
+
+# 4. Policy Management
+
+    # 1. Device Compliance Policies
+
+        # Get All Compliance Policies
+            Get-IntuneDeviceCompliancePolicy
+
+        # Create a New Device Compliance Policy (Example: Windows 10)
+            Add-IntuneDeviceCompliancePolicyWindows10 -DisplayName "Windows10CompliancePolicy" -PasswordRequired $true -OsMinimumVersion "10.0.15063.0"
+
+        # Assign a Compliance Policy to a Group
+            Add-IntuneDeviceCompliancePolicyAssignment -DeviceCompliancePolicyId "policy-id" -TargetGroupId "group-id"
+
+        # Remove a Compliance Policy
+            Remove-IntuneDeviceCompliancePolicy -DeviceCompliancePolicyId "policy-id"
+
+    # 2. Configuration Profiles
+
+        # Get All Configuration Profiles
+            Get-IntuneDeviceConfigurationPolicy
+
+        # Get a Specific Configuration Profile by ID
+            Get-IntuneDeviceConfigurationPolicy -DeviceConfigurationPolicyId "policy-id"
+
+        # Create a New Configuration Profile (Example: Wi-Fi Profile for Windows 10)
+            Add-IntuneDeviceConfigurationPolicyWindows10CustomConfiguration -DisplayName "WiFiProfile" -OMASettings @(
+                @{
+                    OMAUri = "./Vendor/MSFT/WiFi/Profile/MyWiFiProfile/SSIDs/SSID";
+                    Value = "YourWiFiSSID";
+                }
+            )
+
+        # Assign a Configuration Profile to a Group
+            Add-IntuneDeviceConfigurationPolicyAssignment -DeviceConfigurationPolicyId "policy-id" -TargetGroupId "group-id"
+
+        # Remove a Configuration Profile
+            Remove-IntuneDeviceConfigurationPolicy -DeviceConfigurationPolicyId "policy-id"
+
+# 5. Compliance and Security
+
+    # 1. Viewing Device Compliance Status
+
+        # Get Compliance State for All Devices
+            Get-IntuneDeviceCompliancePolicyDeviceState
+
+        # Get Compliance Status for a Specific Device
+            Get-IntuneDeviceCompliancePolicyDeviceState -ManagedDeviceId "device-id"
+
+        # Export Device Compliance Status to CSV
+            Get-IntuneDeviceCompliancePolicyDeviceState | Export-Csv -Path "C:\Reports\DeviceComplianceStatus.csv" -NoTypeInformation
+
+    # 2. Managing Conditional Access Policies
+
+        # Get All Conditional Access Policies
+            Get-AzureADMSConditionalAccessPolicy
+
+        # Get Conditional Access Policy by ID
+            Get-AzureADMSConditionalAccessPolicy -Id "policy-id"
+
+        # Create a New Conditional Access Policy
+            New-AzureADMSConditionalAccessPolicy -DisplayName "Require MFA for All Users" -State "Enabled" -Conditions (New-Object -TypeName Microsoft.Graph.PowerShell.Models.MicrosoftGraphConditionalAccessConditionSet -Property @{
+                Users = (New-Object -TypeName Microsoft.Graph.PowerShell.Models.MicrosoftGraphConditionalAccessUsers -Property @{
+                    IncludeUsers = @("All");
+                });
+                Applications = (New-Object -TypeName Microsoft.Graph.PowerShell.Models.MicrosoftGraphConditionalAccessApplications -Property @{
+                    IncludeApplications = @("All");
+                });
+            }) -GrantControls (New-Object -TypeName Microsoft.Graph.PowerShell.Models.MicrosoftGraphConditionalAccessGrantControls -Property @{
+                BuiltInControls = @("mfa");
+            })
+
+        # Remove a Conditional Access Policy
+            Remove-AzureADMSConditionalAccessPolicy -Id "policy-id"
+
+# 6. Device Enrollment Management
+
+    # 1. Managing Enrollment Profiles
+
+        # Get All Enrollment Profiles
+            Get-IntuneEnrollmentProfile
+
+        # Create a New Enrollment Profile
+            Add-IntuneEnrollmentProfile -DisplayName "CompanyEnrollment" -Description "Company Enrollment Profile for Windows 10" -EnableWhiteGlove $false
+
+        # Assign Enrollment Profile to a Group
+            Add-IntuneEnrollmentProfileAssignment -EnrollmentProfileId "profile-id" -TargetGroupId "group-id"
+
+        # Remove an Enrollment Profile
+            Remove-IntuneEnrollmentProfile -EnrollmentProfileId "profile-id"
+
+    # 2. Managing AutoPilot Devices
+
+        # Get All AutoPilot Devices
+            Get-IntuneWindowsAutopilotDevice
+
+        # Import Devices into AutoPilot from a CSV
+            Import-IntuneWindowsAutopilotDeviceIdentity -Path "C:\path\to\AutoPilotDevices.csv"
+
+        # Assign an AutoPilot Profile to Devices
+            Add-IntuneWindowsAutopilotDeploymentProfileAssignment -DeploymentProfileId "profile-id" -ManagedDeviceId "device-id"
+
+        # Remove an AutoPilot Device
+            Remove-IntuneWindowsAutopilotDevice -DeviceId "device-id"
+
+# 7. Reporting and Auditing
+
+    # 1. Generating Reports
+
+        # Generate a Device Compliance Report
+            Get-IntuneDeviceCompliancePolicyDeviceState | Export-Csv -Path "C:\Reports\DeviceComplianceReport.csv" -NoTypeInformation
+
+        # Generate an App Installation Status Report
+            Get-IntuneMobileAppInstallStatus | Export-Csv -Path "C:\Reports\AppInstallStatus.csv" -NoTypeInformation
+
+    # 2. Auditing and Log Review
+
+        # Get Audit Logs from Intune
+            Get-IntuneAuditLog
+
+        # Filter Audit Logs by Action (e.g., User Login)
+            Get-IntuneAuditLog | Where-Object { $_.Action -eq "UserLogin" }
+
+        # Export Audit Logs to CSV
+            Get-IntuneAuditLog | Export-Csv -Path "C:\Reports\IntuneAuditLogs.csv" -NoTypeInformation

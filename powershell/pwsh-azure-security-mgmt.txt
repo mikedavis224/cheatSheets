@@ -1,0 +1,182 @@
+# 1. Connecting to Azure
+
+    # Install Azure PowerShell Module (Az Module)
+        Install-Module -Name Az -AllowClobber -Force
+
+    # Connect to Azure Account
+        Connect-AzAccount
+
+    # Select a Specific Azure Subscription
+        Get-AzSubscription
+        Select-AzSubscription -SubscriptionId "your-subscription-id"
+
+# 2. Azure Security Center Management
+
+    # 1. Enabling and Managing Security Center
+
+        # Get Security Center Settings for Subscription
+            Get-AzSecurityPricing -Name default
+
+        # Enable Azure Security Center Standard Tier (with Azure Defender)
+            Set-AzSecurityPricing -Name default -PricingTier Standard
+
+        # Get Security Contact Information
+            Get-AzSecurityContact
+
+        # Set Security Contact Information
+            Set-AzSecurityContact -Email "security@domain.com" -Phone "123-456-7890" -AlertNotifications On -AlertsToAdmins On
+
+    # 2. Viewing and Managing Security Recommendations
+
+        # Get All Security Recommendations
+            Get-AzSecurityTask
+
+        # Get Security Recommendations for a Specific Resource Group
+            Get-AzSecurityTask -ResourceGroupName "ResourceGroupName"
+
+        # Dismiss a Security Recommendation
+            Set-AzSecurityTask -ResourceId "/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Security/tasks/{taskName}" -State Dismiss
+
+    # 3. Managing Security Alerts
+
+        # Get Security Alerts for Subscription
+            Get-AzSecurityAlert
+
+        # Get Security Alerts for a Specific Resource
+            Get-AzSecurityAlert -ResourceId "/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachines/{vmName}"
+
+        # Dismiss a Security Alert
+            Set-AzSecurityAlert -ResourceId "/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachines/{vmName}" -AlertName "AlertName" -State Dismiss
+
+        # Get a Summary of Security Alerts
+            Get-AzSecurityAlertSummary
+
+# 3. Azure Defender Management
+
+    # 1. Enabling Azure Defender for Specific Resource Types
+
+        # Enable Azure Defender for Virtual Machines
+            Set-AzSecurityPricing -Name VirtualMachines -PricingTier Standard
+
+        # Enable Azure Defender for Storage Accounts
+            Set-AzSecurityPricing -Name StorageAccounts -PricingTier Standard
+
+        # Enable Azure Defender for SQL Servers
+            Set-AzSecurityPricing -Name SqlServers -PricingTier Standard
+
+        # View Azure Defender Status for All Resources
+            Get-AzSecurityPricing
+
+    # 2. Managing Defender Alerts and Vulnerabilities
+
+        # Get Azure Defender Alerts for Virtual Machines
+            Get-AzSecurityAlert -ResourceType VirtualMachines
+
+        # Get Vulnerability Assessment for Virtual Machines
+            Get-AzSecurityVulnerabilityAssessment -ResourceType VirtualMachines
+
+        # Get Vulnerability Assessment for SQL Servers
+            Get-AzSecurityVulnerabilityAssessment -ResourceType SqlServers
+
+# 4. Security Policies and Compliance
+
+    # 1. Managing Security Policies
+
+        # Get Security Policy for Subscription
+            Get-AzSecurityPolicy -Name default
+
+        # Get Security Policy for a Resource Group
+            Get-AzSecurityPolicy -ResourceGroupName "ResourceGroupName"
+
+        # Set Security Policy for Subscription (Enable Monitoring)
+            Set-AzSecurityPolicy -Name default -PolicyDefinitionId "/providers/Microsoft.Security/policyDefinitions/ascSecurityPolicy"
+
+    # 2. Managing Compliance
+
+        # Get Compliance Status for All Resources
+            Get-AzSecurityCompliance
+
+        # Get Compliance Status for a Specific Resource
+            Get-AzSecurityCompliance -ResourceId "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachines/{vmName}"
+
+        # Export Compliance Report to CSV
+            Get-AzSecurityCompliance | Export-Csv -Path "C:\Reports\SecurityCompliance.csv" -NoTypeInformation
+
+# 5. Role-Based Access Control (RBAC)
+
+    # 1. Managing Roles and Role Assignments
+
+        # Get All Azure Roles
+            Get-AzRoleDefinition
+
+        # Get Role Assignments for a User
+            Get-AzRoleAssignment -SignInName "user@domain.com"
+
+        # Assign a Role to a User at Subscription Level
+            New-AzRoleAssignment -ObjectId (Get-AzADUser -UserPrincipalName "user@domain.com").Id -RoleDefinitionName "Contributor" -Scope "/subscriptions/{subscriptionId}"
+
+        # Assign a Role to a User at Resource Group Level
+            New-AzRoleAssignment -ObjectId (Get-AzADUser -UserPrincipalName "user@domain.com").Id -RoleDefinitionName "Reader" -Scope "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}"
+
+        # Remove a Role Assignment
+            Remove-AzRoleAssignment -ObjectId (Get-AzADUser -UserPrincipalName "user@domain.com").Id -RoleDefinitionName "Reader" -Scope "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}"
+
+# 6. Key Vault Management
+
+    # 1. Managing Azure Key Vaults
+
+        # Create a New Key Vault
+            New-AzKeyVault -ResourceGroupName "ResourceGroupName" -VaultName "MyKeyVault" -Location "EastUS" -Sku Standard
+
+        # Get All Key Vaults in a Subscription
+            Get-AzKeyVault
+
+        # Get a Specific Key Vault
+            Get-AzKeyVault -VaultName "MyKeyVault"
+
+        # Set Access Policy for a Key Vault (Granting Access to a User)
+            Set-AzKeyVaultAccessPolicy -VaultName "MyKeyVault" -UserPrincipalName "user@domain.com" -PermissionsToSecrets Get,Set
+
+        # Remove Access Policy for a Key Vault
+            Remove-AzKeyVaultAccessPolicy -VaultName "MyKeyVault" -UserPrincipalName "user@domain.com"
+
+    # 2. Managing Secrets, Keys, and Certificates
+
+        # Add a New Secret to Key Vault
+            Set-AzKeyVaultSecret -VaultName "MyKeyVault" -Name "MySecret" -SecretValue (ConvertTo-SecureString "SecretValue123" -AsPlainText -Force)
+
+        # Get a Secret from Key Vault
+            Get-AzKeyVaultSecret -VaultName "MyKeyVault" -Name "MySecret"
+
+        # Delete a Secret from Key Vault
+            Remove-AzKeyVaultSecret -VaultName "MyKeyVault" -Name "MySecret"
+
+        # Add a Key to Key Vault
+            Add-AzKeyVaultKey -VaultName "MyKeyVault" -Name "MyKey" -KeyOps "encrypt", "decrypt"
+
+        # Add a Certificate to Key Vault
+            Add-AzKeyVaultCertificate -VaultName "MyKeyVault" -Name "MyCert" -CertificatePolicy (Get-AzKeyVaultCertificatePolicy -SubjectName "CN=mydomain.com")
+
+# 7. Security Reporting and Alerts
+
+    # 1. Security Alerts and Logs
+
+        # Get Azure Activity Logs
+            Get-AzActivityLog -StartTime (Get-Date).AddDays(-7) -MaxRecord 1000
+
+        # Get Security Alerts
+            Get-AzSecurityAlert
+
+        # Get Security Recommendations
+            Get-AzSecurityTask
+
+    # 2. Export Security Reports
+
+        # Export Security Alerts to CSV
+            Get-AzSecurityAlert | Export-Csv -Path "C:\Reports\SecurityAlerts.csv" -NoTypeInformation
+
+        # Export Security Recommendations to CSV
+            Get-AzSecurityTask | Export-Csv -Path "C:\Reports\SecurityRecommendations.csv" -NoTypeInformation
+
+        # Export Activity Logs to CSV
+            Get-AzActivityLog -StartTime (Get-Date).AddDays(-7) -MaxRecord 1000 | Export-Csv -Path "C:\Reports\ActivityLogs.csv" -NoTypeInformation

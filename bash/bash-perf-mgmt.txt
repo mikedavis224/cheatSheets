@@ -1,0 +1,185 @@
+# 1. System Resource Monitoring
+
+    # Check CPU, Memory, and Load
+        top                                            # Real-time system resource usage (CPU, memory, load)
+        htop                                           # Enhanced top (requires installation via package manager)
+        uptime                                         # Check system uptime and load averages
+        vmstat                                         # Report virtual memory statistics
+        free -m                                        # Show memory usage in megabytes
+        lscpu                                          # Display detailed CPU information
+        mpstat                                         # Show per-CPU statistics (install sysstat package)
+        dstat                                          # Versatile resource statistic tool (requires installation)
+
+    # CPU Usage Statistics
+        sar -u 1 5                                     # CPU usage every second for 5 iterations
+        mpstat                                         # Per-core CPU statistics
+        iostat                                         # CPU and I/O statistics (install sysstat)
+
+    # Memory Usage Statistics
+        free -h                                        # Check memory and swap usage
+        vmstat 1 5                                     # Display memory usage every second for 5 iterations
+        cat /proc/meminfo                              # Detailed memory information
+
+    # Disk I/O Statistics
+        iostat                                         # Basic I/O statistics
+        iostat -x 1 5                                  # Extended I/O statistics every second for 5 iterations
+        dstat                                          # Real-time disk I/O statistics (install via package manager)
+
+    # Network Statistics
+        iftop                                          # Real-time bandwidth usage per connection
+        nload                                          # Real-time network bandwidth monitor
+        sar -n DEV 1 5                                 # Network statistics per interface (install sysstat)
+        ip -s link                                     # Display network interface traffic statistics
+
+# 2. Process and Service Management
+
+    # Monitor Processes
+        ps aux                                         # Show all running processes
+        ps aux --sort=-%mem                            # Sort processes by memory usage
+        ps aux --sort=-%cpu                            # Sort processes by CPU usage
+        pgrep process_name                             # Find process ID by name
+        pstree                                         # Show running processes in a tree format
+
+    # Kill or Terminate Processes
+        kill PID                                       # Kill process by PID
+        kill -9 PID                                    # Force kill a process
+        killall process_name                           # Kill all processes by name
+
+    # Check Top Memory-Consuming Processes
+        top                                            # Interactive real-time process monitoring (sorted by CPU usage by default)
+        htop                                           # Enhanced top with more options for sorting
+
+    # Check Top CPU-Consuming Processes
+        top                                            # Check high CPU usage processes
+        ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu | head  # Find top 10 CPU-consuming processes
+
+# 3. Disk and File System Management
+
+    # Check Disk Usage
+        df -h                                          # Disk usage in human-readable format
+        du -sh /path/to/directory                      # Display size of a specific directory
+        du -sh *                                       # Display the size of each item in the current directory
+
+    # Check Inode Usage
+        df -i                                          # Display inode usage of file systems
+
+    # Disk I/O Monitoring
+        iotop                                          # Real-time disk I/O usage by processes (requires installation)
+        iostat -dx 1 5                                 # Show disk I/O statistics for devices every second (5 iterations)
+
+    # Check File System Type
+        df -T                                          # Show file system type of mounted partitions
+
+    # Check Disk Health (SMART)
+        sudo smartctl -a /dev/sda                      # Display detailed SMART information (install smartmontools)
+        sudo smartctl -H /dev/sda                      # Quick SMART health check
+
+# 4. Swap Management
+
+    # Check Swap Usage
+        swapon -s                                      # Check current swap usage
+        free -m                                        # Check memory and swap usage
+        cat /proc/swaps                                # View swap partitions in use
+
+    # Enable/Disable Swap
+        sudo swapon /dev/sdXY                          # Enable a swap partition
+        sudo swapoff /dev/sdXY                         # Disable a swap partition
+
+    # Create a Swap File
+        sudo fallocate -l 2G /swapfile                 # Create a 2GB swap file
+        sudo chmod 600 /swapfile                       # Secure the swap file
+        sudo mkswap /swapfile                          # Mark the file as swap space
+        sudo swapon /swapfile                          # Enable the swap file
+        echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab  # Make swap persistent
+
+# 5. CPU Management and Performance Tuning
+
+    # View CPU Information
+        lscpu                                          # Display CPU architecture information
+        cat /proc/cpuinfo                              # Detailed CPU information
+
+    # Limit CPU Usage of a Process
+        cpulimit -p PID -l 50                          # Limit CPU usage of a process to 50% (install cpulimit)
+
+    # Adjust Process Priority (Nice/renice)
+        nice -n 10 command                             # Run command with lower priority (positive nice value)
+        renice -n -5 -p PID                            # Change the priority of a running process (higher priority)
+
+    # CPU Frequency Scaling
+        cpupower frequency-info                        # Show CPU frequency scaling information
+        cpupower frequency-set -g performance          # Set CPU governor to performance (requires cpupower)
+
+# 6. Memory Management and Tuning
+
+    # Check Memory and Swap Usage
+        free -h                                        # Display memory usage (in human-readable format)
+        vmstat                                         # Virtual memory statistics
+
+    # Clear Cached Memory
+        sudo sync; echo 1 | sudo tee /proc/sys/vm/drop_caches  # Clear page cache
+        sudo sync; echo 2 | sudo tee /proc/sys/vm/drop_caches  # Clear dentries and inodes
+
+    # Adjust Swap Usage (Swappiness)
+        cat /proc/sys/vm/swappiness                    # Check current swappiness value
+        sudo sysctl vm.swappiness=10                   # Reduce swap usage by setting swappiness to 10
+        echo "vm.swappiness=10" | sudo tee -a /etc/sysctl.conf  # Make it persistent across reboots
+
+# 7. I/O Performance Management
+
+    # Check Disk Latency and I/O Performance
+        sudo ioping /path/to/directory                 # Measure I/O latency of a specific directory (install ioping)
+        sudo hdparm -tT /dev/sda                       # Test read speed of a hard drive
+
+    # Adjust I/O Scheduler
+        cat /sys/block/sda/queue/scheduler             # Check current I/O scheduler
+        echo deadline | sudo tee /sys/block/sda/queue/scheduler  # Set I/O scheduler to deadline
+        echo noop | sudo tee /sys/block/sda/queue/scheduler      # Set I/O scheduler to noop (useful for SSDs)
+
+    # Limit Disk I/O with `ionice`
+        ionice -c3 -p PID                              # Set a process to idle I/O class (lowest priority)
+        ionice -c2 -n4 -p PID                          # Set a process to best-effort I/O class with priority 4
+
+# 8. Network Performance Management
+
+    # Monitor Network Bandwidth Usage
+        sudo iftop                                     # Real-time bandwidth usage per connection (install via package manager)
+        nload                                          # Real-time network bandwidth monitor (install via package manager)
+
+    # Test Network Performance (iperf)
+        iperf -s                                       # Start iperf in server mode
+        iperf -c <server_ip>                           # Run iperf in client mode to test bandwidth
+
+    # Monitor Network Latency
+        ping google.com                                # Check network latency by pinging a server
+        mtr google.com                                 # Continuous traceroute and ping to check network latency and routing
+
+# 9. Performance Monitoring and Logging
+
+    # Log System Performance Metrics (using sysstat)
+        sudo apt install sysstat                       # Install sysstat (if not installed)
+        sar -u 1 5                                     # CPU usage statistics every second for 5 iterations
+        sar -r 1 5                                     # Memory usage statistics every second for 5 iterations
+        sar -n DEV 1 5                                 # Network device statistics every second for 5 iterations
+
+    # Enable System Activity Logging (sysstat)
+        sudo systemctl enable sysstat                  # Enable sysstat logging at boot
+        sudo systemctl start sysstat                   # Start sysstat logging
+
+    # View System Activity Reports
+        sar                                            # View daily system performance report
+        sar -q                                         # View system load averages over time
+        sar -d                                         # View disk activity report
+
+# 10. Miscellaneous Performance Commands
+
+    # Benchmark CPU
+        sysbench cpu --cpu-max-prime=20000 run         # CPU benchmarking with sysbench (install sysbench)
+
+    # Benchmark File I/O
+        sysbench fileio --file-total-size=1G prepare   # Prepare file for I/O benchmarking
+        sysbench fileio --file-total-size=1G --file-test-mode=rndrw run  # Run random read/write I/O test
+        sysbench fileio --file-total-size=1G cleanup   # Clean up after the test
+
+    # Benchmark Memory
+        sysbench memory run                            # Run memory benchmarking test
+

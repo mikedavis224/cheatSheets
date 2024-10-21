@@ -1,0 +1,159 @@
+# 1. User Account Management
+
+    # Create a New User
+        sudo adduser username                          # Create a new user
+        sudo useradd username                          # Create a user (basic)
+        sudo passwd username                           # Set password for the user
+
+    # Delete a User
+        sudo deluser username                          # Delete a user (Ubuntu/Debian)
+        sudo userdel username                          # Delete a user (CentOS/RHEL)
+        sudo deluser --remove-home username            # Delete a user and their home directory
+        sudo userdel -r username                       # Delete a user and their home directory
+
+    # Modify User Information
+        sudo usermod -c "Full Name" username           # Change user full name (comment)
+        sudo usermod -l new_username old_username      # Rename a user
+        sudo usermod -d /new/home/directory username   # Change home directory
+        sudo usermod -s /bin/bash username             # Change default shell
+        sudo usermod -aG groupname username            # Add user to an additional group
+
+    # Lock/Unlock User Accounts
+        sudo usermod -L username                       # Lock a user account
+        sudo usermod -U username                       # Unlock a user account
+
+    # Change User Password
+        sudo passwd username                           # Set/change password for a user
+        sudo chage -l username                         # View password aging info
+        sudo passwd -e username                        # Force user to change password on next login
+
+# 2. Group Management
+
+    # Create and Delete Groups
+        sudo addgroup groupname                        # Create a new group (Ubuntu/Debian)
+        sudo groupadd groupname                        # Create a new group (CentOS/RHEL)
+        sudo delgroup groupname                        # Delete a group (Ubuntu/Debian)
+        sudo groupdel groupname                        # Delete a group (CentOS/RHEL)
+
+    # Add/Remove Users from Groups
+        sudo usermod -aG groupname username            # Add user to a group
+        sudo gpasswd -d username groupname             # Remove user from a group
+
+    # List Groups for a User
+        groups username                                # Show groups a user belongs to
+        id username                                    # Display user ID, group ID, and groups
+
+# 3. User and Group Information
+
+    # View User Information
+        id username                                    # Display user ID, group ID, and groups
+        getent passwd username                         # Show user information from /etc/passwd
+        finger username                                # Display user information (requires finger package)
+        chage -l username                              # Show password expiration info
+
+    # View Group Information
+        getent group groupname                         # Show group information from /etc/group
+        groups username                                # List groups a user is a part of
+
+    # Show Logged-In Users
+        who                                            # Show who is logged in
+        w                                              # Show logged-in users and what they are doing
+        last                                           # Show last login history
+
+# 4. File and Directory Permissions
+
+    # View File Permissions
+        ls -l                                          # List files with their permissions
+        stat filename                                  # Detailed file permissions and ownership info
+
+    # Change File/Directory Ownership
+        sudo chown user:group filename                 # Change owner and group of a file
+        sudo chown -R user:group /path/to/directory    # Recursively change owner and group
+
+    # Change File/Directory Permissions
+        chmod 644 filename                             # Set file permissions to -rw-r--r-- (owner read/write, group/others read-only)
+        chmod 755 filename                             # Set file permissions to -rwxr-xr-x (owner all, group/others read/execute)
+        chmod -R 755 /path/to/directory                # Recursively change permissions
+
+    # Special Permissions (Setuid, Setgid, Sticky Bit)
+        chmod u+s /path/to/file                        # Setuid: Executed file runs as file owner
+        chmod g+s /path/to/directory                   # Setgid: Files in directory inherit group
+        chmod +t /path/to/directory                    # Sticky bit: Only owner can delete files in directory
+
+# 5. Sudo Privileges Management
+
+    # Grant Sudo Privileges to a User
+        sudo usermod -aG sudo username                 # Add user to the sudo group (Ubuntu/Debian)
+        sudo usermod -aG wheel username                # Add user to the wheel group (CentOS/RHEL)
+
+    # Edit Sudoers File
+        sudo visudo                                    # Safely edit the sudoers file
+
+    # Grant Specific Privileges to a User
+        # Open sudoers file using visudo:
+        sudo visudo
+
+        # Example of granting user `username` permissions to restart networking without a password:
+        username ALL=(ALL) NOPASSWD: /usr/sbin/service networking restart
+
+    # Remove Sudo Privileges
+        sudo deluser username sudo                     # Remove user from sudo group (Ubuntu/Debian)
+        sudo gpasswd -d username wheel                 # Remove user from wheel group (CentOS/RHEL)
+
+# 6. User Activity Monitoring
+
+    # Check User Login History
+        last                                           # Show login history
+        lastlog                                        # Show the most recent login of all users
+
+    # Monitor User Activity
+        w                                              # Show who is logged in and their activities
+        who                                            # Show who is logged in
+        whoami                                         # Display the current logged-in user
+        id                                             # Show the effective user and group IDs
+
+    # Monitor User's Command History
+        history                                        # Show command history of the current user
+        cat ~/.bash_history                            # View specific user's bash history
+        export HISTTIMEFORMAT="%F %T "                 # Show timestamp for each command in history
+
+# 7. User and Group Quotas (Disk Usage Limits)
+
+    # Install Quota Tools (Ubuntu/Debian)
+        sudo apt install quota                         # Install quota package
+
+    # Install Quota Tools (CentOS/RHEL)
+        sudo yum install quota                         # Install quota package
+
+    # Enable Disk Quotas on a Filesystem
+        sudo mount -o remount,usrquota /               # Enable user quotas on root filesystem
+        sudo mount -o remount,grpquota /               # Enable group quotas on root filesystem
+
+    # Set Disk Quotas for a User
+        sudo edquota -u username                       # Edit disk quota for a user
+
+    # View User's Disk Quota Usage
+        quota -u username                              # Check disk usage and limits for a user
+        repquota /                                     # Report disk quota for the filesystem
+
+# 8. User Account Security
+
+    # Expire User Account
+        sudo chage -E 0 username                       # Expire user account (disable immediately)
+        sudo usermod -e YYYY-MM-DD username            # Set account expiration date
+
+    # Lock/Unlock User Account
+        sudo passwd -l username                        # Lock a user account
+        sudo passwd -u username                        # Unlock a user account
+
+    # Disable/Enable Shell Access
+        sudo usermod -s /usr/sbin/nologin username     # Disable shell access for a user
+        sudo usermod -s /bin/bash username             # Enable shell access for a user
+
+    # Force User to Change Password on Next Login
+        sudo passwd -e username                        # Expire password, force change at next login
+        sudo chage -d 0 username                       # Same as above (reset password change date)
+
+    # Set Password Expiration Policy
+        sudo chage -M 90 username                      # Set password to expire in 90 days
+        sudo chage -W 7 username                       # Warn user 7 days before password expiration

@@ -1,0 +1,322 @@
+# 1. Basic Fortinet CLI Management
+
+    # 1. Accessing the FortiGate CLI
+
+        # Connect to FortiGate via SSH
+            ssh admin@<fortigate-ip>
+
+        # Enter Global Configuration Mode
+            config global
+
+        # Enter Configuration for a Specific VDOM
+            config vdom
+            edit <vdom-name>
+
+        # Show Current Configuration
+            show
+
+        # Save Changes to Configuration
+            execute save
+
+        # Reboot FortiGate Firewall
+            execute reboot
+
+        # Backup FortiGate Configuration to File
+            execute backup config ftp <filename> <ftp-server> <username> <password>
+
+        # Restore Configuration from Backup
+            execute restore config ftp <filename> <ftp-server> <username> <password>
+
+# 2. Network Interface Management
+
+    # 1. Viewing and Configuring Interfaces
+
+        # View All Network Interfaces
+            show system interface
+
+        # Configure a Specific Interface
+            config system interface
+            edit port1  # Edit Interface 'port1'
+            set ip 192.168.1.1 255.255.255.0  # Set IP Address and Subnet Mask
+            set allowaccess ping https ssh  # Allow Specific Access Methods
+            set description "WAN Interface"  # Set Description
+            end
+
+        # Enable/Disable an Interface
+            config system interface
+            edit port1
+            set status {enable|disable}
+            end
+
+        # Assign DHCP to an Interface
+            config system interface
+            edit port2
+            set mode dhcp
+            end
+
+    # 2. Static Routes
+
+        # View Current Static Routes
+            get router info routing-table all
+
+        # Add a Static Route
+            config router static
+            edit 1
+            set device port1  # Use port1 for the Route
+            set gateway 192.168.1.254
+            set dst 0.0.0.0/0  # Default Route
+            end
+
+        # Remove a Static Route
+            config router static
+            delete 1
+
+# 3. Firewall Policies
+
+    # 1. Viewing and Managing Firewall Policies
+
+        # View All Firewall Policies
+            show firewall policy
+
+        # Create a New Firewall Policy
+            config firewall policy
+            edit 1
+            set name "Allow HTTP"
+            set srcintf "port1"
+            set dstintf "port2"
+            set srcaddr "all"
+            set dstaddr "all"
+            set action accept
+            set schedule "always"
+            set service "HTTP"  # Allow HTTP Service
+            set logtraffic all  # Enable Traffic Logging
+            end
+
+        # Remove a Firewall Policy
+            config firewall policy
+            delete 1
+
+    # 2. Configuring NAT (Network Address Translation)
+
+        # Create a Firewall Policy with NAT Enabled
+            config firewall policy
+            edit 2
+            set name "Allow HTTP with NAT"
+            set srcintf "port1"
+            set dstintf "port2"
+            set srcaddr "all"
+            set dstaddr "all"
+            set action accept
+            set schedule "always"
+            set service "HTTP"
+            set nat enable  # Enable NAT
+            end
+
+        # Enable Central NAT (if required)
+            config system settings
+            set central-nat enable
+            end
+
+# 4. Security Profiles (Web Filter, Antivirus, etc.)
+
+    # 1. Web Filtering
+
+        # View Web Filtering Profiles
+            show webfilter profile
+
+        # Create a New Web Filtering Profile
+            config webfilter profile
+            edit "WebFilterProfile"
+            set comment "Block social media websites"
+            config web
+            edit 1
+            set url-category "social-networking"  # Block Social Networking Sites
+            set action block
+            next
+            end
+            end
+
+        # Apply Web Filtering to a Firewall Policy
+            config firewall policy
+            edit 1
+            set webfilter-profile "WebFilterProfile"
+            end
+
+    # 2. Antivirus Profile
+
+        # View Antivirus Profiles
+            show antivirus profile
+
+        # Create an Antivirus Profile
+            config antivirus profile
+            edit "AVProfile"
+            set comment "Basic antivirus protection"
+            config http
+            set status enable
+            set options scan
+            end
+            end
+
+        # Apply Antivirus Profile to a Firewall Policy
+            config firewall policy
+            edit 1
+            set av-profile "AVProfile"
+            end
+
+    # 3. Intrusion Prevention (IPS)
+
+        # View IPS Sensor Profiles
+            show ips sensor
+
+        # Create an IPS Sensor Profile
+            config ips sensor
+            edit "IPSSensor"
+            set comment "Basic IPS"
+            config entries
+            edit 1
+            set action block
+            set signature-id 1000001  # Block Specific Signature
+            end
+            end
+
+        # Apply IPS Profile to a Firewall Policy
+            config firewall policy
+            edit 1
+            set ips-sensor "IPSSensor"
+            end
+
+# 5. VPN Configuration (IPSec VPN)
+
+    # 1. Configuring an IPSec VPN
+
+        # Create an IPSec Phase 1 (IKE) Configuration
+            config vpn ipsec phase1-interface
+            edit "vpn1"
+            set interface "port1"
+            set ike-version 2
+            set local-gw 192.168.1.1  # Local Gateway
+            set peer-gw 203.0.113.1  # Remote Gateway
+            set psksecret "PreSharedKey123"  # Pre-shared Key
+            set proposal aes256-sha256
+            end
+
+        # Create an IPSec Phase 2 Configuration
+            config vpn ipsec phase2-interface
+            edit "vpn1-phase2"
+            set phase1name "vpn1"
+            set proposal aes256-sha256
+            set dst-addr-type subnet
+            set dst-subnet 192.168.10.0 255.255.255.0
+            end
+
+    # 2. Monitoring VPN Status
+
+        # View All IPSec VPN Tunnels
+            get vpn ipsec tunnel summary
+
+        # Check Status of a Specific VPN Tunnel
+            diagnose vpn tunnel list
+
+# 6. Traffic Monitoring and Diagnostics
+
+    # 1. Monitoring Real-Time Traffic
+
+        # View Real-Time Traffic
+            diagnose sniffer packet any 'host 192.168.1.1' 4
+
+        # View Traffic for Specific Ports
+            diagnose sniffer packet any 'port 443' 4
+
+        # View Session Table
+            diagnose sys session list
+
+        # Filter Session Table by Source IP
+            diagnose sys session filter src 192.168.1.100
+            diagnose sys session list
+
+    # 2. Viewing Logs
+
+        # View Traffic Logs
+            execute log filter category 1
+            execute log display
+
+        # View Event Logs
+            execute log filter category 2
+            execute log display
+
+        # View VPN Logs
+            execute log filter category 3
+            execute log display
+
+    # 3. System Diagnostics
+
+        # View CPU and Memory Usage
+            get system performance status
+
+        # View Disk Usage
+            get system status
+
+        # Check Uptime
+            get system uptime
+
+# 7. User Management and Authentication
+
+    # 1. Configuring Local Users
+
+        # Create a Local User
+            config user local
+            edit "localuser1"
+            set type password
+            set passwd "UserPassword123"
+            set email-to "user@domain.com"
+            end
+
+        # Create a User Group
+            config user group
+            edit "Group1"
+            set member "localuser1"
+            end
+
+    # 2. Configuring LDAP Authentication
+
+        # Configure an LDAP Server
+            config user ldap
+            edit "LDAPServer"
+            set server "192.168.1.10"
+            set cnid "sAMAccountName"
+            set dn "dc=domain,dc=com"
+            set type regular
+            set username "CN=admin,OU=Users,DC=domain,DC=com"
+            set password "Password123"
+            end
+
+        # Apply LDAP Authentication to a Firewall Policy
+            config firewall policy
+            edit 1
+            set identity-based enable
+            config identity-based-policy
+            edit 1
+            set groups "LDAPServer"
+            end
+            end
+
+# 8. Backups, Restore, and Upgrades
+
+    # 1. Backing Up and Restoring Configuration
+
+        # Backup Configuration to Local File
+            execute backup config tftp <filename> <tftp-server>
+
+        # Restore Configuration from Local File
+            execute restore config tftp <filename> <tftp-server>
+
+    # 2. Firmware Upgrades
+
+        # Check Current Firmware Version
+            get system status
+
+        # Upload and Install Firmware
+            execute restore image tftp <firmware-file> <tftp-server>
+
+        # Reboot After Firmware Installation
+            execute reboot
