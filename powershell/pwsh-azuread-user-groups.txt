@@ -1,0 +1,159 @@
+# 1. Connecting to Azure AD
+
+    # Install Azure AD PowerShell module (AzureAD)
+        Install-Module -Name AzureAD
+
+    # Connect to Azure AD
+        Connect-AzureAD
+
+    # Disconnect from Azure AD
+        Disconnect-AzureAD
+
+# 2. User Management
+
+    # 1. Managing Users
+
+        # Get a List of All Users
+            Get-AzureADUser
+
+        # Get a Specific User
+            Get-AzureADUser -ObjectId user@domain.com
+
+        # Create a New User
+            New-AzureADUser -DisplayName "User Name" -PasswordProfile (New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile -Property @{Password = "Password123!"}) -UserPrincipalName user@domain.com -AccountEnabled $true -MailNickname "user"
+
+        # Remove a User
+            Remove-AzureADUser -ObjectId user@domain.com
+
+        # Update User Information
+            Set-AzureADUser -ObjectId user@domain.com -DisplayName "Updated Name" -JobTitle "New Job Title"
+
+        # Disable/Enable User Account
+            Set-AzureADUser -ObjectId user@domain.com -AccountEnabled $false   # Disable
+            Set-AzureADUser -ObjectId user@domain.com -AccountEnabled $true    # Enable
+
+        # Reset User Password
+            Set-AzureADUserPassword -ObjectId user@domain.com -Password "NewPassword123!" -ForceChangePasswordNextLogin $true
+
+    # 2. Managing User Licenses
+
+        # Get a List of Available Licenses
+            Get-AzureADSubscribedSku
+
+        # Assign a License to a User
+            $license = Get-AzureADSubscribedSku | Where-Object { $_.SkuPartNumber -eq "ENTERPRISEPREMIUM" }
+            Add-AzureADUserLicense -ObjectId user@domain.com -AssignedLicenses @{SkuId=$license.SkuId}
+
+        # Remove a License from a User
+            Remove-AzureADUserLicense -ObjectId user@domain.com -AssignedLicenseIds $license.SkuId
+
+    # 3. Managing User Groups
+
+        # Add a User to a Group
+            Add-AzureADGroupMember -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId -RefObjectId (Get-AzureADUser -ObjectId user@domain.com).ObjectId
+
+        # Remove a User from a Group
+            Remove-AzureADGroupMember -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId -MemberId (Get-AzureADUser -ObjectId user@domain.com).ObjectId
+
+        # Get All Groups a User is a Member Of
+            Get-AzureADUserMembership -ObjectId user@domain.com
+
+# 3. Group Management
+
+    # 1. Managing Groups
+
+        # Get a List of All Groups
+            Get-AzureADGroup
+
+        # Get a Specific Group
+            Get-AzureADGroup -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId
+
+        # Create a New Group
+            New-AzureADGroup -DisplayName "Group Name" -MailEnabled $false -SecurityEnabled $true -MailNickname "groupnickname"
+
+        # Remove a Group
+            Remove-AzureADGroup -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId
+
+        # Update Group Information
+            Set-AzureADGroup -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId -DisplayName "Updated Group Name"
+
+    # 2. Managing Group Memberships
+
+        # Add a Member to a Group
+            Add-AzureADGroupMember -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId -RefObjectId (Get-AzureADUser -ObjectId user@domain.com).ObjectId
+
+        # Remove a Member from a Group
+            Remove-AzureADGroupMember -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId -MemberId (Get-AzureADUser -ObjectId user@domain.com).ObjectId
+
+        # Get All Members of a Group
+            Get-AzureADGroupMember -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId
+
+        # Add Multiple Users to a Group (Bulk)
+            $group = Get-AzureADGroup -SearchString "Group Name"
+            $users = Get-AzureADUser -Filter "UserPrincipalName eq 'user1@domain.com' or UserPrincipalName eq 'user2@domain.com'"
+            foreach ($user in $users) { Add-AzureADGroupMember -ObjectId $group.ObjectId -RefObjectId $user.ObjectId }
+
+    # 3. Managing Group Owners
+
+        # Add an Owner to a Group
+            Add-AzureADGroupOwner -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId -RefObjectId (Get-AzureADUser -ObjectId user@domain.com).ObjectId
+
+        # Remove an Owner from a Group
+            Remove-AzureADGroupOwner -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId -OwnerId (Get-AzureADUser -ObjectId user@domain.com).ObjectId
+
+        # Get Group Owners
+            Get-AzureADGroupOwner -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId
+
+# 4. Role Management
+
+    # 1. Managing Roles and Role Assignments
+
+        # Get a List of Available Roles
+            Get-AzureADDirectoryRole
+
+        # Enable a Role (e.g., Global Administrator)
+            Enable-AzureADDirectoryRole -RoleTemplateId (Get-AzureADDirectoryRoleTemplate | Where-Object { $_.DisplayName -eq "Global Administrator" }).ObjectId
+
+        # Assign a Role to a User
+            Add-AzureADDirectoryRoleMember -ObjectId (Get-AzureADDirectoryRole | Where-Object { $_.DisplayName -eq "Global Administrator" }).ObjectId -RefObjectId (Get-AzureADUser -ObjectId user@domain.com).ObjectId
+
+        # Remove a Role from a User
+            Remove-AzureADDirectoryRoleMember -ObjectId (Get-AzureADDirectoryRole | Where-Object { $_.DisplayName -eq "Global Administrator" }).ObjectId -MemberId (Get-AzureADUser -ObjectId user@domain.com).ObjectId
+
+        # View Role Assignments for a User
+            Get-AzureADUser -ObjectId user@domain.com | Select-Object -ExpandProperty AssignedRoles
+
+# 5. Conditional Access Policies
+
+    # 1. Managing Conditional Access Policies
+
+        # Get All Conditional Access Policies
+            Get-AzureADMSConditionalAccessPolicy
+
+        # Get a Specific Conditional Access Policy
+            Get-AzureADMSConditionalAccessPolicy -Id <policyId>
+
+        # Create a New Conditional Access Policy
+            New-AzureADMSConditionalAccessPolicy -DisplayName "Block External Access" -State "Enabled" -Conditions (New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessConditionSet -Property @{Locations=(New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessLocations -Property @{IncludeLocations=@('All')})}) -GrantControls (New-Object -TypeName Microsoft.Open.MSGraph.Model.ConditionalAccessGrantControls -Property @{BuiltInControls=@('Block')})
+
+        # Remove a Conditional Access Policy
+            Remove-AzureADMSConditionalAccessPolicy -Id <policyId>
+
+# 6. Audit and Reports
+
+    # 1. Audit Logs and Reports
+
+        # Get Azure AD Audit Logs
+            Get-AzureADAuditDirectoryLogs
+
+        # Filter Audit Logs by User
+            Get-AzureADAuditDirectoryLogs | Where-Object { $_.TargetResources.UserPrincipalName -eq "user@domain.com" }
+
+        # Get Sign-In Logs for a Specific User
+            Get-AzureADAuditSignInLogs | Where-Object { $_.UserPrincipalName -eq "user@domain.com" }
+
+        # Export Audit Logs to CSV
+            Get-AzureADAuditDirectoryLogs | Export-Csv -Path "C:\Logs\AuditLogs.csv" -NoTypeInformation
+
+        # Get Directory Role Changes
+            Get-AzureADMSDirectoryAudit | Where-Object { $_.Category -eq "RoleManagement" }

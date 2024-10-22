@@ -1,0 +1,155 @@
+# 1. Basic Linux Server Management
+
+    # Update System Packages
+        sudo apt update && sudo apt upgrade               # Ubuntu/Debian
+        sudo yum update                                   # CentOS/RHEL
+
+    # Check System Information
+        uname -r                                          # Kernel version
+        df -h                                             # Disk usage
+        free -m                                           # Memory usage
+        top or htop                                       # System resource monitor
+
+    # Manage Users and Permissions
+        sudo adduser username                             # Add a new user
+        sudo passwd username                              # Set password for the user
+        sudo usermod -aG sudo username                    # Add user to sudoers
+        sudo chown -R user:group /var/www                 # Change ownership of files
+        sudo chmod -R 755 /var/www                        # Set correct permissions for web directories
+
+# 2. Web Server (Apache/Nginx) Management
+
+    # Apache Installation and Management
+        sudo apt install apache2                          # Install Apache (Ubuntu)
+        sudo yum install httpd                            # Install Apache (CentOS)
+        sudo systemctl start apache2                      # Start Apache (Ubuntu)
+        sudo systemctl enable apache2                     # Enable Apache to start on boot
+        sudo systemctl restart apache2                    # Restart Apache
+
+    # Nginx Installation and Management
+        sudo apt install nginx                            # Install Nginx (Ubuntu)
+        sudo yum install nginx                            # Install Nginx (CentOS)
+        sudo systemctl start nginx                        # Start Nginx
+        sudo systemctl enable nginx                       # Enable Nginx to start on boot
+        sudo systemctl restart nginx                      # Restart Nginx
+
+    # Apache Virtual Host Configuration
+        sudo nano /etc/apache2/sites-available/example.com.conf
+            <VirtualHost *:80>
+                ServerName example.com
+                ServerAlias www.example.com
+                DocumentRoot /var/www/example.com/public_html
+                ErrorLog ${APACHE_LOG_DIR}/example.com_error.log
+                CustomLog ${APACHE_LOG_DIR}/example.com_access.log combined
+            </VirtualHost>
+        sudo a2ensite example.com.conf                    # Enable and reload configuration
+        sudo systemctl reload apache2
+
+    # Nginx Server Block Configuration
+        sudo nano /etc/nginx/sites-available/example.com
+            server {
+                listen 80;
+                server_name example.com www.example.com;
+                root /var/www/example.com/public_html;
+                index index.html index.php;
+                access_log /var/log/nginx/example.com_access.log;
+                error_log /var/log/nginx/example.com_error.log;
+            }
+        sudo ln -s /etc/nginx/sites-available/example.com /etc/nginx/sites-enabled/
+        sudo systemctl reload nginx                       # Enable and reload configuration
+
+# 3. DNS Management
+
+    # Check DNS Records
+        dig example.com                                   # Check A record for example.com
+        dig example.com MX                                # Check MX records
+        dig example.com NS                                # Check name servers
+
+    # Test DNS Resolution
+        nslookup example.com                              # Basic DNS lookup
+
+# 4. SSL/TLS (HTTPS) with Let's Encrypt
+
+    # Install Certbot (Let's Encrypt SSL)
+        sudo apt install certbot python3-certbot-apache   # Apache (Ubuntu)
+        sudo apt install certbot python3-certbot-nginx    # Nginx (Ubuntu)
+
+    # Obtain and Install SSL Certificates
+        sudo certbot --apache                             # For Apache
+        sudo certbot --nginx                              # For Nginx
+
+    # Renew SSL Certificates
+        sudo certbot renew                                # Automatically renew SSL
+
+# 5. PHP and Database Management
+
+    # Install PHP (with common modules)
+        sudo apt install php libapache2-mod-php php-mysql  # Apache (Ubuntu)
+        sudo apt install php-fpm php-mysql                 # Nginx (Ubuntu)
+
+    # Install and Secure MySQL/MariaDB
+        sudo apt install mysql-server                      # Install MySQL (Ubuntu)
+        sudo mysql_secure_installation                     # Secure MySQL installation
+
+    # MySQL Basic Commands
+        sudo mysql -u root -p                              # Log in to MySQL
+        CREATE DATABASE exampledb;                         # Create a database
+        CREATE USER 'user'@'localhost' IDENTIFIED BY 'password';   # Create a new user
+        GRANT ALL PRIVILEGES ON exampledb.* TO 'user'@'localhost'; # Grant privileges
+        FLUSH PRIVILEGES;                                  # Apply changes
+
+# 6. Content Management Systems (CMS)
+
+    # Install WordPress
+        wget https://wordpress.org/latest.tar.gz
+        tar -xvzf latest.tar.gz
+        sudo mv wordpress /var/www/example.com/public_html/
+        sudo chown -R www-data:www-data /var/www/example.com/public_html/
+
+    # Install Drupal
+        wget https://ftp.drupal.org/files/projects/drupal-x.x.x.tar.gz
+        tar -xvzf drupal-x.x.x.tar.gz
+        sudo mv drupal-x.x.x /var/www/example.com/public_html/
+        sudo chown -R www-data:www-data /var/www/example.com/public_html/
+
+# 7. Firewall Management
+
+    # UFW (Uncomplicated Firewall) - Ubuntu
+        sudo ufw allow ssh                                  # Allow SSH
+        sudo ufw allow http                                 # Allow HTTP (Port 80)
+        sudo ufw allow https                                # Allow HTTPS (Port 443)
+        sudo ufw enable                                     # Enable UFW
+        sudo ufw status                                     # Check firewall status
+
+    # FirewallD - CentOS
+        sudo firewall-cmd --permanent --add-service=http    # Allow HTTP
+        sudo firewall-cmd --permanent --add-service=https   # Allow HTTPS
+        sudo firewall-cmd --reload                          # Reload firewall rules
+
+# 8. File Permissions and Ownership
+
+    # Changing File Ownership
+        sudo chown -R www-data:www-data /var/www/example.com/public_html
+
+    # Set Correct File Permissions
+        sudo chmod -R 755 /var/www                          # Set directories to 755
+        sudo chmod -R 644 /var/www/example.com/public_html  # Set files to 644
+
+# 9. Backup and Restore
+
+    # Backing Up Website Files
+        tar -czvf example.com_backup.tar.gz /var/www/example.com/public_html
+
+    # Backing Up MySQL Database
+        mysqldump -u root -p exampledb > exampledb_backup.sql
+
+    # Restore Website Files
+        tar -xzvf example.com_backup.tar.gz -C /var/www/example.com/public_html
+
+    # Restore MySQL Database
+        mysql -u root -p exampledb < exampledb_backup.sql
+
+# 10. Monitoring and Logs
+
+    # View Apache Logs
+        sudo tail -f /var/log/apac

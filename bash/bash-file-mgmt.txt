@@ -1,0 +1,194 @@
+# 1. Navigation and Viewing Files
+
+    # Change Directory
+        cd /path/to/directory                # Change to specific directory
+        cd ~                                 # Go to home directory
+        cd ..                                # Move up one directory level
+        cd -                                 # Go to previous directory
+
+    # List Files and Directories
+        ls                                   # List files in the current directory
+        ls -l                                # Long format (permissions, owner, size, etc.)
+        ls -a                                # Include hidden files (starting with a dot)
+        ls -lh                               # Human-readable sizes (KB, MB, etc.)
+        ls -lt                               # Sort by modification time (newest first)
+
+    # View File Contents
+        cat filename                         # Output the contents of a file
+        tac filename                         # Output the contents in reverse order
+        less filename                        # View file with navigation (quicker for large files)
+        more filename                        # Similar to less, but less advanced
+        head filename                        # View the first 10 lines of a file
+        head -n 20 filename                  # View the first 20 lines of a file
+        tail filename                        # View the last 10 lines of a file
+        tail -n 20 filename                  # View the last 20 lines of a file
+        tail -f filename                     # Follow a file in real-time (e.g., log files)
+
+    # View File Metadata
+        stat filename                        # View detailed file metadata (size, permissions, etc.)
+        file filename                        # Determine the file type (text, binary, etc.)
+
+# 2. Creating and Managing Files
+
+    #Create a New File
+        touch filename                       # Create an empty file
+
+    #Copy Files
+        cp source_file /path/to/destination   # Copy a file to another location
+        cp -r /source/directory /destination  # Copy a directory and its contents recursively
+        cp -i source_file destination         # Prompt before overwriting files
+        cp -v source_file destination         # Show verbose output (files being copied)
+
+    # Move or Rename Files
+        mv old_filename new_filename          # Rename a file
+        mv /path/to/source /path/to/destination  # Move a file or directory
+
+    # Delete Files
+        rm filename                           # Delete a file
+        rm -i filename                         # Prompt before deleting each file
+        rm -f filename                         # Force delete a file (no prompt)
+        rm -r directory/                       # Delete a directory and its contents recursively
+        rm -rf directory/                      # Forcefully delete a directory and all contents
+
+# 3. Creating and Managing Directories
+
+    # Create Directories
+        mkdir new_directory                   # Create a new directory
+        mkdir -p /path/to/new_directory        # Create parent directories if they don't exist
+
+    # Delete Directories
+        rmdir empty_directory                  # Remove an empty directory
+        rm -r directory/                       # Recursively delete a directory and its contents
+
+# 4. Searching and Finding Files
+
+    # Search for Files and Directories
+        find /path -name filename              # Find files by name
+        find /path -type d -name directory     # Find directories by name
+        find /path -type f -name "*.txt"       # Find files with a specific extension
+        find /path -size +100M                 # Find files larger than 100MB
+
+    # Search for Text Inside Files
+        grep 'search_term' filename            # Search for a specific text in a file
+        grep -r 'search_term' /path            # Search recursively in a directory
+        grep -i 'search_term' filename         # Case-insensitive search
+        grep -n 'search_term' filename         # Show line numbers where search_term occurs
+
+# 5. Permissions and Ownership
+
+    # View File Permissions
+        ls -l                                 # Show file permissions and ownership
+
+    # Change File Permissions
+        chmod 644 filename                    # Set file permissions (owner can read/write, others read-only)
+        chmod 755 filename                    # Set execute permissions for owner and read for others (useful for scripts)
+        chmod -R 755 directory/               # Recursively change permissions for a directory
+
+    # Change File Ownership
+        sudo chown user:group filename        # Change ownership of a file
+        sudo chown -R user:group directory/   # Recursively change ownership of a directory
+
+    # Change File Group Ownership
+        chgrp groupname filename              # Change group ownership of a file
+
+# 6. Compression and Archiving
+
+    # Compress Files and Directories with tar
+        tar -czvf archive.tar.gz /path        # Create a compressed .tar.gz archive
+        tar -xvzf archive.tar.gz              # Extract a .tar.gz archive
+        tar -cvf archive.tar /path            # Create an uncompressed tar archive
+        tar -xvf archive.tar                  # Extract an uncompressed tar archive
+
+    # Use zip and unzip
+        zip archive.zip file1 file2           # Compress files into a .zip archive
+        unzip archive.zip                     # Extract files from a .zip archive
+
+# 7. Symbolic Links and Hard Links
+
+    # Create Symbolic Links (Symlinks)
+        ln -s /path/to/file linkname          # Create a symbolic link (shortcut) to a file
+        ln -s /path/to/directory linkname     # Create a symbolic link to a directory
+
+    # Create Hard Links
+        ln /path/to/file linkname             # Create a hard link to a file
+
+# 8. Disk Usage and Space Management
+
+    # Check Disk Usage
+        df -h                                 # Show disk space usage in human-readable format
+        du -h /path                           # Show directory and file sizes in human-readable format
+        du -sh /path                          # Show total size of a directory
+        du -sh *                              # Show the size of each item in a directory
+
+    # Identify Large Files and Directories
+        du -ah /path | sort -n -r | head -n 10   # Show top 10 largest files and directories
+
+# 9. Linking and Shortcut Creation
+
+    # Create a Soft (Symbolic) Link
+        ln -s /path/to/original /path/to/link    # Create a symbolic link
+
+    # Create a Hard Link
+        ln /path/to/original /path/to/link       # Create a hard link
+
+# 10. File Integrity and Checksums
+
+    # Calculate MD5 Checksum
+        md5sum filename                        # Calculate MD5 checksum for a file
+
+    # Calculate SHA256 Checksum
+        sha256sum filename                     # Calculate SHA256 checksum for a file
+
+# 11. Temporary Files
+
+    # Create Temporary Files and Directories
+        mktemp                                # Create a temporary file
+        mktemp -d                             # Create a temporary directory
+
+# 12. File Transfers
+
+    # Transfer Files Using scp (SSH Secure Copy)
+        scp localfile user@remote:/path       # Copy a local file to a remote server
+        scp user@remote:/path/file /localdir  # Copy a remote file to your local system
+        scp -r /localdir user@remote:/path    # Recursively copy a directory to a remote server
+
+# 13. File Editing
+
+    # Use nano to Edit Files
+        nano filename                         # Open a file in the nano text editor
+        Ctrl+O                                # Save the file in nano
+        Ctrl+X                                # Exit nano
+
+    # Use vim to Edit Files
+        vim filename                          # Open a file in the vim text editor
+        i                                     # Enter insert mode (start editing)
+        Esc                                   # Exit insert mode
+        :w                                    # Save changes
+        :q                                    # Quit vim
+        :wq                                   # Save and quit
+        :q!                                   # Quit without saving
+
+# 14. Miscellaneous Commands
+
+    # Compare Files
+        diff file1 file2                      # Compare two text files line by line
+        cmp file1 file2                       # Compare two files byte by byte
+
+# Check File Type
+    file filename                         # Determine the type of a file
+
+# 15. File Permissions Overview
+
+    # File permissions are set using three categories of users:
+        # 1. Owner (u)
+        # 2. Group (g)
+        # 3. Others (o)
+
+    # Permission types:
+        # r: Read
+        # w: Write
+        # x: Execute
+
+# Example of changing permissions
+    chmod 755 filename                    # Owner can read/write/execute, others can read/execute
+    chmod -R 644 /path                    # Apply read/write for owner, read-only for group and others

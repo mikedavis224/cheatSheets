@@ -1,0 +1,90 @@
+# 1. System Resource Monitoring
+
+    # Monitor CPU Usage
+        Get-Counter '\Processor(_Total)\% Processor Time'      # Get CPU usage
+        Get-WmiObject win32_processor | Select-Object LoadPercentage  # Check CPU load percentage
+
+    # Monitor Memory Usage
+        Get-Counter '\Memory\Available MBytes'                 # Available memory
+        Get-WmiObject Win32_OperatingSystem | Select-Object FreePhysicalMemory,TotalVisibleMemorySize
+
+    # Monitor Disk Usage
+        Get-PSDrive -PSProvider FileSystem                     # Show disk usage for all drives
+        Get-WmiObject Win32_LogicalDisk | Select-Object DeviceID,FreeSpace,Size
+
+    # Monitor Network Usage
+        Get-Counter '\Network Interface(*)\Bytes Total/sec'     # Monitor network usage
+        Get-NetAdapterStatistics                               # View network adapter statistics
+
+# 2. Process and Service Management
+
+    # List Running Processes
+        Get-Process                                            # List all running processes
+        Get-Process | Sort-Object CPU -Descending | Select-Object -First 10  # Top 10 CPU-consuming processes
+
+    # Kill or Stop a Process
+        Stop-Process -Id 1234                                  # Kill a process by ID
+        Stop-Process -Name "processname"                       # Kill a process by name
+
+    # List and Manage Services
+        Get-Service                                            # List all services
+        Start-Service "ServiceName"                            # Start a service
+        Stop-Service "ServiceName"                             # Stop a service
+        Restart-Service "ServiceName"                          # Restart a service
+
+# 3. Disk and File System Management
+
+    # Check Disk Usage
+        Get-PSDrive -PSProvider FileSystem                     # View disk space
+        Get-WmiObject Win32_LogicalDisk | Select-Object DeviceID,FreeSpace,Size
+
+    # Monitor Disk I/O
+        Get-Counter '\PhysicalDisk(_Total)\Disk Reads/sec'     # Monitor disk read operations
+        Get-Counter '\PhysicalDisk(_Total)\Disk Writes/sec'    # Monitor disk write operations
+
+    # Check Disk Health (SMART)
+        Get-WmiObject -Query "Select * from MSStorageDriver_FailurePredictStatus"  # Check SMART status
+
+# 4. CPU Management and Performance Tuning
+
+    # Limit CPU Usage of a Process
+        $process = Get-Process -Name "processname"
+        $process.ProcessorAffinity = 0x0003                    # Limit process to specific CPU cores (bitmask)
+
+    # Set Process Priority
+        (Get-Process -Id 1234).PriorityClass = "High"          # Set high priority for a process
+
+# 5. Memory Management and Tuning
+
+    # Check Memory Usage
+        Get-Counter '\Memory\Available MBytes'                 # Check available memory
+        Get-WmiObject Win32_OperatingSystem | Select-Object FreePhysicalMemory,TotalVisibleMemorySize
+
+    # Clear Standby Memory
+        Clear-MemoryCache                                      # Clear the standby list (requires PowerShell module)
+
+# 6. I/O Performance Management
+
+    # Check Disk I/O
+        Get-Counter '\PhysicalDisk(*)\Disk Transfers/sec'      # Check I/O operations per second
+
+    # Monitor Disk Latency
+        Get-Counter '\PhysicalDisk(*)\Avg. Disk sec/Transfer'  # Monitor disk latency
+
+# 7. Network Performance Management
+
+    # Monitor Network Traffic
+        Get-NetAdapterStatistics                               # Real-time network statistics
+        Get-Counter '\Network Interface(*)\Bytes Total/sec'    # Check total network traffic
+
+    # Test Network Performance
+        Test-Connection google.com                             # Ping test
+        tracert google.com                                     # Trace network route
+
+# 8. Performance Monitoring and Logging
+
+    # Enable Performance Logging
+        New-EventLog -LogName "Application" -Source "PerfMon"  # Create a custom event log for performance monitoring
+
+    # View System Activity Logs
+        Get-EventLog -LogName System -Newest 10                # View the latest system logs

@@ -1,0 +1,184 @@
+# 1. Connecting to Azure
+
+    # Install Azure PowerShell Module (Az Module)
+        Install-Module -Name Az -AllowClobber -Force
+
+    # Connect to Azure Account
+        Connect-AzAccount
+
+    # Select a Specific Azure Subscription
+        Get-AzSubscription
+        Select-AzSubscription -SubscriptionId "your-subscription-id"
+
+# 2. Virtual Network Management (VNet)
+
+    # 1. Managing Virtual Networks (VNet)
+
+        # Create a New Virtual Network
+            New-AzVirtualNetwork -ResourceGroupName "ResourceGroupName" -Location "EastUS" -Name "MyVNet" -AddressPrefix "10.0.0.0/16"
+
+        # Add a Subnet to an Existing VNet
+            Add-AzVirtualNetworkSubnetConfig -Name "MySubnet" -VirtualNetwork $vnet -AddressPrefix "10.0.1.0/24"
+            Set-AzVirtualNetwork -VirtualNetwork $vnet
+
+        # Get a List of VNets
+            Get-AzVirtualNetwork
+
+        # Get a Specific VNet
+            Get-AzVirtualNetwork -Name "MyVNet" -ResourceGroupName "ResourceGroupName"
+
+        # Remove a VNet
+            Remove-AzVirtualNetwork -Name "MyVNet" -ResourceGroupName "ResourceGroupName"
+
+    # 2. Managing Subnets
+
+        # Create a New Subnet
+            Add-AzVirtualNetworkSubnetConfig -Name "MySubnet" -AddressPrefix "10.0.1.0/24" -VirtualNetwork $vnet
+
+        # Get a List of Subnets in a VNet
+            Get-AzVirtualNetworkSubnetConfig -VirtualNetworkName "MyVNet" -ResourceGroupName "ResourceGroupName"
+
+        # Remove a Subnet
+            Remove-AzVirtualNetworkSubnetConfig -Name "MySubnet" -VirtualNetwork $vnet
+            Set-AzVirtualNetwork -VirtualNetwork $vnet
+
+# 3. Network Security Groups (NSGs)
+
+    # 1. Managing NSGs
+
+        # Create a New Network Security Group
+            New-AzNetworkSecurityGroup -ResourceGroupName "ResourceGroupName" -Location "EastUS" -Name "MyNSG"
+
+        # Get a List of NSGs
+            Get-AzNetworkSecurityGroup -ResourceGroupName "ResourceGroupName"
+
+        # Get a Specific NSG
+            Get-AzNetworkSecurityGroup -Name "MyNSG" -ResourceGroupName "ResourceGroupName"
+
+        # Remove an NSG
+            Remove-AzNetworkSecurityGroup -Name "MyNSG" -ResourceGroupName "ResourceGroupName"
+
+    # 2. Managing NSG Rules
+
+        # Add an Inbound NSG Rule to Allow SSH (Port 22)
+            $nsg = Get-AzNetworkSecurityGroup -ResourceGroupName "ResourceGroupName" -Name "MyNSG"
+            $rule = New-AzNetworkSecurityRuleConfig -Name "Allow-SSH" -Description "Allow SSH" -Access Allow -Protocol Tcp -Direction Inbound -Priority 100 -SourceAddressPrefix * -SourcePortRange * -DestinationAddressPrefix * -DestinationPortRange 22
+            $nsg.SecurityRules.Add($rule)
+            Set-AzNetworkSecurityGroup -NetworkSecurityGroup $nsg
+
+        # Get NSG Rules
+            Get-AzNetworkSecurityRuleConfig -NetworkSecurityGroup $nsg
+
+        # Remove an NSG Rule
+            $nsg.SecurityRules.Remove($nsg.SecurityRules | Where-Object { $_.Name -eq "Allow-SSH" })
+            Set-AzNetworkSecurityGroup -NetworkSecurityGroup $nsg
+
+# 4. Public IP Address Management
+
+    # 1. Managing Public IPs
+
+        # Create a New Public IP Address
+            New-AzPublicIpAddress -ResourceGroupName "ResourceGroupName" -Name "MyPublicIP" -Location "EastUS" -AllocationMethod Static -Sku Standard
+
+        # Get a List of Public IP Addresses
+            Get-AzPublicIpAddress -ResourceGroupName "ResourceGroupName"
+
+        # Get a Specific Public IP Address
+            Get-AzPublicIpAddress -Name "MyPublicIP" -ResourceGroupName "ResourceGroupName"
+
+        # Remove a Public IP Address
+            Remove-AzPublicIpAddress -Name "MyPublicIP" -ResourceGroupName "ResourceGroupName"
+
+# 5. Network Interfaces (NICs)
+
+    # 1. Managing Network Interfaces
+
+        # Create a New NIC
+            $vnet = Get-AzVirtualNetwork -ResourceGroupName "ResourceGroupName" -Name "MyVNet"
+            $subnet = Get-AzVirtualNetworkSubnetConfig -Name "MySubnet" -VirtualNetwork $vnet
+            $pip = Get-AzPublicIpAddress -ResourceGroupName "ResourceGroupName" -Name "MyPublicIP"
+            New-AzNetworkInterface -ResourceGroupName "ResourceGroupName" -Name "MyNIC" -Location "EastUS" -SubnetId $subnet.Id -PublicIpAddressId $pip.Id
+
+        # Get a List of NICs
+            Get-AzNetworkInterface -ResourceGroupName "ResourceGroupName"
+
+        # Get a Specific NIC
+            Get-AzNetworkInterface -Name "MyNIC" -ResourceGroupName "ResourceGroupName"
+
+        # Remove a NIC
+            Remove-AzNetworkInterface -Name "MyNIC" -ResourceGroupName "ResourceGroupName"
+
+# 6. Virtual Network Gateways (VPN)
+
+    # 1. Managing Virtual Network Gateways
+
+        # Create a Virtual Network Gateway
+            $vnet = Get-AzVirtualNetwork -Name "MyVNet" -ResourceGroupName "ResourceGroupName"
+            New-AzVirtualNetworkGateway -ResourceGroupName "ResourceGroupName" -Location "EastUS" -Name "MyVNetGateway" -IpConfigurations $vnetGatewayIpConfig -GatewayType Vpn -VpnType RouteBased -EnableBgp $false -GatewaySku VpnGw1
+
+        # Get Virtual Network Gateways
+            Get-AzVirtualNetworkGateway -ResourceGroupName "ResourceGroupName"
+
+        # Remove a Virtual Network Gateway
+            Remove-AzVirtualNetworkGateway -Name "MyVNetGateway" -ResourceGroupName "ResourceGroupName"
+
+    # 2. Managing VPN Connections
+
+        # Create a VPN Connection
+            $gateway1 = Get-AzVirtualNetworkGateway -ResourceGroupName "ResourceGroupName" -Name "MyVNetGateway"
+            $gateway2 = Get-AzVirtualNetworkGateway -ResourceGroupName "ResourceGroupName" -Name "OtherVNetGateway"
+            New-AzVirtualNetworkGatewayConnection -Name "MyVPNConnection" -ResourceGroupName "ResourceGroupName" -Location "EastUS" -VirtualNetworkGateway1 $gateway1 -VirtualNetworkGateway2 $gateway2 -ConnectionType Vnet2Vnet
+
+        # Get VPN Connections
+            Get-AzVirtualNetworkGatewayConnection -ResourceGroupName "ResourceGroupName"
+
+        # Remove a VPN Connection
+            Remove-AzVirtualNetworkGatewayConnection -Name "MyVPNConnection" -ResourceGroupName "ResourceGroupName"
+
+# 7. Load Balancer Management
+
+    # 1. Managing Load Balancers
+
+        # Create a Load Balancer
+            New-AzLoadBalancer -ResourceGroupName "ResourceGroupName" -Name "MyLoadBalancer" -Location "EastUS" -FrontendIpConfigurationName "MyFrontEnd" -PublicIpAddressId $pip.Id -BackendAddressPoolName "MyBackEndPool" -ProbeName "MyHealthProbe" -Protocol Tcp -Port 80
+
+        # Get Load Balancers
+            Get-AzLoadBalancer -ResourceGroupName "ResourceGroupName"
+
+        # Remove a Load Balancer
+            Remove-AzLoadBalancer -Name "MyLoadBalancer" -ResourceGroupName "ResourceGroupName"
+
+    # 2. Managing Load Balancer Rules
+
+        # Add a Load Balancer Rule
+            $lb = Get-AzLoadBalancer -ResourceGroupName "ResourceGroupName" -Name "MyLoadBalancer"
+            $rule = New-AzLoadBalancerRuleConfig -Name "MyHTTPRule" -FrontendIpConfiguration $lb.FrontendIpConfigurations[0] -BackendAddressPool $lb.BackendAddressPools[0] -Probe $lb.Probes[0] -Protocol Tcp -FrontendPort 80 -BackendPort 80
+            Set-AzLoadBalancer -LoadBalancer $lb
+
+        # Remove a Load Balancer Rule
+            $lb.LoadBalancingRules.Remove($lb.LoadBalancingRules | Where-Object { $_.Name -eq "MyHTTPRule" })
+            Set-AzLoadBalancer -LoadBalancer $lb
+
+# 8. Traffic Manager Profiles
+
+    # 1. Managing Traffic Manager Profiles
+
+        # Create a Traffic Manager Profile
+            New-AzTrafficManagerProfile -Name "MyTrafficManager" -ResourceGroupName "ResourceGroupName" -TrafficRoutingMethod Performance -RelativeDnsName "myapp" -Ttl 30 -MonitorProtocol Http -MonitorPort 80 -MonitorPath "/"
+
+        # Get Traffic Manager Profiles
+            Get-AzTrafficManagerProfile -ResourceGroupName "ResourceGroupName"
+
+        # Remove a Traffic Manager Profile
+            Remove-AzTrafficManagerProfile -Name "MyTrafficManager" -ResourceGroupName "ResourceGroupName"
+
+    # 2. Managing Traffic Manager Endpoints
+
+        # Add an Endpoint to Traffic Manager Profile
+            Add-AzTrafficManagerEndpointConfig -ProfileName "MyTrafficManager" -ResourceGroupName "ResourceGroupName" -Name "MyEndpoint" -Type AzureEndpoints -TargetResourceId "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Network/publicIPAddresses/MyPublicIP"
+
+        # Get Traffic Manager Endpoints
+            Get-AzTrafficManagerEndpoint -ProfileName "MyTrafficManager" -ResourceGroupName "ResourceGroupName"
+
+        # Remove a Traffic Manager Endpoint
+            Remove-AzTrafficManagerEndpoint -ProfileName "MyTrafficManager" -Name "MyEndpoint" -ResourceGroupName "ResourceGroupName"

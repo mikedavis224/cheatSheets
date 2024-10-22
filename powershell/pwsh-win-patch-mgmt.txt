@@ -1,0 +1,184 @@
+# 1. Checking for and Installing Windows Updates
+
+    # 1. Checking for Available Updates
+
+        # Import Windows Update Module (if necessary)
+            Import-Module -Name PSWindowsUpdate
+
+        # Get a List of Available Updates
+            Get-WindowsUpdate
+
+        # Get Available Updates for Specific Categories (e.g., Security, Critical)
+            Get-WindowsUpdate -Category "Security Updates", "Critical Updates"
+
+        # Get Only Recommended Updates
+            Get-WindowsUpdate -IsRecommended
+
+    # 2. Installing Windows Updates
+
+        # Install All Available Updates
+            Install-WindowsUpdate -AcceptAll -AutoReboot
+
+        # Install Specific Updates by KB Number
+            Get-WindowsUpdate -KBArticleID "KB5000802" | Install-WindowsUpdate -AcceptAll -AutoReboot
+
+        # Install Updates Without Restarting
+            Install-WindowsUpdate -AcceptAll -IgnoreReboot
+
+    # 3. Managing Update Notifications and Auto-Restarts
+
+        # Suppress Update Notifications (Useful for Servers)
+            Set-WindowsUpdate -DoNotAutoRebootWhenUsersAreLoggedOn $true
+
+        # Enable Automatic Restart After Updates
+            Set-WindowsUpdate -DoNotAutoRebootWhenUsersAreLoggedOn $false
+
+# 2. Windows Update History and Reporting
+
+    # 1. Viewing Installed Updates
+
+        # Get a List of Installed Updates
+            Get-HotFix
+
+        # Get Installed Updates by KB Number
+            Get-HotFix -Id "KB5000802"
+
+        # Export Installed Updates to CSV
+            Get-HotFix | Export-Csv -Path "C:\Reports\InstalledUpdates.csv" -NoTypeInformation
+
+    # 2. Viewing Windows Update History
+
+        # View Update History (Using Windows Update Logs)
+            Get-WindowsUpdateLog
+
+        # Search Update History for Specific KB
+            Get-WindowsUpdateLog | Select-String -Pattern "KB5000802"
+
+        # Export Update History to a Text File
+            Get-WindowsUpdateLog | Out-File -FilePath "C:\Reports\WindowsUpdateHistory.txt"
+
+# 3. Windows Update Settings
+
+    # 1. Configuring Automatic Updates
+
+        # Get Current Windows Update Settings
+            Get-WUSettings
+
+        # Enable Automatic Updates
+            Set-WUSettings -AutoDownload
+
+        # Disable Automatic Updates
+            Set-WUSettings -DisableAutoUpdates
+
+        # Schedule Updates to Install on a Specific Day/Time
+            Set-WUSettings -AutoDownloadAndSchedule -ScheduleDay 5 -ScheduleTime "03:00"  # Example: Schedule on Fridays at 3 AM
+
+    # 2. Managing Update Deferrals
+
+        # Defer Feature Updates for 30 Days
+            Set-WUSettings -DeferFeatureUpdates -DeferDays 30
+
+        # Defer Quality Updates for 15 Days
+            Set-WUSettings -DeferQualityUpdates -DeferDays 15
+
+        # Remove Update Deferrals (Install All Updates Immediately)
+            Set-WUSettings -RemoveDeferFeatureUpdates -RemoveDeferQualityUpdates
+
+# 4. Managing Windows Update for Business (WUfB)
+
+    # 1. Configuring Windows Update for Business Policies
+
+        # Set Active Hours for Updates (Example: 8 AM to 5 PM)
+            Set-WUSettings -ActiveHoursStartTime 8 -ActiveHoursEndTime 17
+
+        # Set a Deadline for Update Installation (e.g., 7 Days After Release)
+            Set-WUSettings -InstallUpdatesWithinDays 7
+
+    # 2. Managing Windows Update Rings
+
+        # Create a New Update Ring (Example: Dev Ring with Fast Updates)
+            New-WindowsUpdateRing -Name "DevRing" -DeferQualityUpdates 0 -DeferFeatureUpdates 0 -InstallUpdatesWithinDays 3
+
+        # Modify an Existing Update Ring
+            Set-WindowsUpdateRing -Name "DevRing" -DeferQualityUpdates 10
+
+        # Remove an Update Ring
+            Remove-WindowsUpdateRing -Name "DevRing"
+
+# 5. Managing WSUS (Windows Server Update Services)
+
+    # 1. WSUS Server Management
+
+        # Connect to WSUS Server
+            $wsus = Get-WsusServer -Name "WSUSServerName" -PortNumber 8530
+
+        # Get WSUS Server Status
+            $wsus.GetStatus()
+
+        # Get the Synchronization Status
+            $wsus.GetSynchronizationStatus()
+
+        # Synchronize Updates with Microsoft Update
+            $wsus.Synchronize()
+
+    # 2. Managing WSUS Updates
+
+        # Get a List of Available Updates in WSUS
+            Get-WsusUpdate -Classification All -Status Any
+
+        # Approve Updates for a Specific Group (e.g., All Computers)
+            $update = Get-WsusUpdate -UpdateID "update-id"
+            $targetGroup = $wsus.GetComputerTargetGroups() | Where-Object { $_.Name -eq "All Computers" }
+            $update.Approve("Install", $targetGroup)
+
+        # Decline an Update
+            $update = Get-WsusUpdate -UpdateID "update-id"
+            $update.Decline()
+
+    # 3. Managing WSUS Client Devices
+
+        # Get All WSUS Clients (Computers)
+            Get-WsusComputer
+
+        # Get Update Status for a Specific Client
+            $client = Get-WsusComputer -Name "ComputerName"
+            $client.GetUpdateInstallationSummary()
+
+        # Force WSUS Client to Check for Updates
+            Invoke-WUScan -ComputerName "ComputerName"
+
+# 6. Scheduling and Automating Windows Updates
+
+    # 1. Scheduling Windows Updates via Task Scheduler
+
+        # Create a Scheduled Task to Install Updates Daily at 3 AM
+            $action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-Command Install-WindowsUpdate -AcceptAll -AutoReboot"
+            $trigger = New-ScheduledTaskTrigger -Daily -At 3AM
+            Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "Daily Windows Update" -Description "Daily installation of Windows Updates."
+
+        # View Scheduled Task for Windows Update
+            Get-ScheduledTask -TaskName "Daily Windows Update"
+
+        # Remove Scheduled Task
+            Unregister-ScheduledTask -TaskName "Daily Windows Update" -Confirm:$false
+
+# 7. Reporting and Logging
+
+    # 1. Generating Windows Update Reports
+
+        # Get a Summary of Installed and Missing Updates for All Machines
+            Get-WUInstallSummary -ComputerName "ComputerName"
+
+        # Export Installed Updates Report to CSV
+            Get-HotFix | Export-Csv -Path "C:\Reports\InstalledUpdates.csv" -NoTypeInformation
+
+        # Export Windows Update Log to a Text File
+            Get-WindowsUpdateLog | Out-File -FilePath "C:\Reports\WindowsUpdateLog.txt"
+
+    # 2. Monitoring Update Logs
+
+        # View Windows Update Logs in Real Time (tail -f Equivalent)
+            Get-WindowsUpdateLog | Select-String "Error" -Wait
+
+        # Search Update Logs for Errors or Warnings
+            Get-WindowsUpdateLog | Select-String -Pattern "Error", "Warning"

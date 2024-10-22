@@ -1,0 +1,145 @@
+# 1. Connecting to Azure
+
+    # Install Azure PowerShell Module (Az Module)
+        Install-Module -Name Az -AllowClobber -Force
+
+    # Connect to Azure Account
+        Connect-AzAccount
+
+    # Select a Specific Azure Subscription
+        Get-AzSubscription
+        Select-AzSubscription -SubscriptionId "your-subscription-id"
+
+# 2. Virtual Machine (VM) Creation
+
+    # 1. Creating a Virtual Machine (VM)
+
+        # Define Variables
+            $resourceGroup = "MyResourceGroup"
+            $location = "EastUS"
+            $vmName = "MyVM"
+            $adminUsername = "adminuser"
+            $adminPassword = ConvertTo-SecureString "Password123!" -AsPlainText -Force
+
+        # Create a Resource Group
+            New-AzResourceGroup -Name $resourceGroup -Location $location
+
+        # Create a Virtual Network (VNet)
+            $vnet = New-AzVirtualNetwork -ResourceGroupName $resourceGroup -Name "MyVNet" -Location $location -AddressPrefix "10.0.0.0/16"
+            $subnet = Add-AzVirtualNetworkSubnetConfig -Name "MySubnet" -AddressPrefix "10.0.1.0/24" -VirtualNetwork $vnet
+            Set-AzVirtualNetwork -VirtualNetwork $vnet
+
+        # Create a Public IP Address
+            $publicIp = New-AzPublicIpAddress -Name "MyPublicIP" -ResourceGroupName $resourceGroup -Location $location -AllocationMethod Static -Sku Basic
+
+        # Create a Network Security Group (NSG) and Inbound Rule for RDP (Port 3389) or SSH (Port 22)
+            $nsg = New-AzNetworkSecurityGroup -ResourceGroupName $resourceGroup -Location $location -Name "MyNSG"
+            $nsgRule = New-AzNetworkSecurityRuleConfig -Name "Allow-RDP" -Protocol Tcp -Direction Inbound -Priority 1000 -SourceAddressPrefix * -SourcePortRange * -DestinationAddressPrefix * -DestinationPortRange 3389 -Access Allow
+            $nsg.SecurityRules.Add($nsgRule)
+            Set-AzNetworkSecurityGroup -NetworkSecurityGroup $nsg
+
+        # Create a Network Interface (NIC)
+            $nic = New-AzNetworkInterface -ResourceGroupName $resourceGroup -Location $location -Name "MyNIC" -SubnetId $subnet.Id -PublicIpAddressId $publicIp.Id -NetworkSecurityGroupId $nsg.Id
+
+        # Specify VM Size (e.g., Standard_DS1_v2)
+            $vmSize = "Standard_DS1_v2"
+
+        # Create Virtual Machine Configuration
+            $vmConfig = New-AzVMConfig -VMName $vmName -VMSize $vmSize | `
+            Set-AzVMOperatingSystem -Windows -ComputerName $vmName -Credential (New-Object PSCredential($adminUsername, $adminPassword)) | `
+            Set-AzVMSourceImage -PublisherName "MicrosoftWindowsServer" -Offer "WindowsServer" -Skus "2019-Datacenter" -Version "latest" | `
+            Add-AzVMNetworkInterface -Id $nic.Id
+
+        # Create the Virtual Machine
+            New-AzVM -ResourceGroupName $resourceGroup -Location $location -VM $vmConfig
+
+# 3. Virtual Machine Management
+
+    # 1. Managing VM Power States
+
+        # Start a Virtual Machine
+            Start-AzVM -ResourceGroupName $resourceGroup -Name $vmName
+
+        # Stop a Virtual Machine
+            Stop-AzVM -ResourceGroupName $resourceGroup -Name $vmName
+
+        # Restart a Virtual Machine
+            Restart-AzVM -ResourceGroupName $resourceGroup -Name $vmName
+
+        # Deallocate a Virtual Machine (Stop and release resources)
+            Stop-AzVM -ResourceGroupName $resourceGroup -Name $vmName -Force -Deallocate
+
+        # Get the Power State of a VM
+            Get-AzVM -ResourceGroupName $resourceGroup -Name $vmName -Status | Select-Object -ExpandProperty PowerState
+
+    # 2. Managing VM Size and Scaling
+
+        # Get Available VM Sizes in a Location
+            Get-AzVMSize -Location $location
+
+        # Resize a Virtual Machine
+            $vm = Get-AzVM -ResourceGroupName $resourceGroup -Name $vmName
+            $vm.HardwareProfile.VmSize = "Standard_DS2_v2"
+            Update-AzVM -ResourceGroupName $resourceGroup -VM $vm
+
+    # 3. Managing VM Extensions
+
+        # List Available VM Extensions
+            Get-AzVMExtensionImage -Location $location
+
+        # Install Custom Script Extension (for running a script)
+            Set-AzVMExtension -ResourceGroupName $resourceGroup -VMName $vmName -Location $location -Name "CustomScriptExtension" -Publisher "Microsoft.Compute" -ExtensionType "CustomScriptExtension" -TypeHandlerVersion "1.10" -SettingString '{"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -File C:\\path\\to\\script.ps1"}'
+
+        # Remove a VM Extension
+            Remove-AzVMExtension -ResourceGroupName $resourceGroup -VMName $vmName -Name "CustomScriptExtension"
+
+# 4. Disk Management
+
+    # 1. Managing OS and Data Disks
+
+        # Get OS Disk Information
+            Get-AzVM -ResourceGroupName $resourceGroup -Name $vmName | Select-Object -ExpandProperty StorageProfile | Select-Object -ExpandProperty OsDisk
+
+        # Attach a New Data Disk to a VM
+            $diskConfig = New-AzDiskConfig -AccountType Premium_LRS -CreateOption Empty -DiskSizeGB 128
+            $dataDisk = New-AzDisk -ResourceGroupName $resourceGroup -DiskName "MyDataDisk" -Disk $diskConfig
+            Add-AzVMDataDisk -VM $vm -Name "MyDataDisk" -CreateOption Attach -ManagedDiskId $dataDisk.Id -Lun 1
+            Update-AzVM -ResourceGroupName $resourceGroup -VM $vm
+
+        # Remove a Data Disk from a VM
+            Remove-AzVMDataDisk -VM $vm -Name "MyDataDisk"
+            Update-AzVM -ResourceGroupName $resourceGroup -VM $vm
+
+    # 2. Managing Snapshots and Backups
+
+        # Create a Snapshot of a VM's OS Disk
+            $osDisk = (Get-AzVM -ResourceGroupName $resourceGroup -Name $vmName).StorageProfile.OsDisk
+            $snapshotConfig = New-AzSnapshotConfig -SourceUri $osDisk.ManagedDisk.Id -Location $location -CreateOption Copy
+            New-AzSnapshot -Snapshot $snapshotConfig -SnapshotName "MyOSDiskSnapshot" -ResourceGroupName $resourceGroup
+
+        # Restore a VM from a Snapshot (Create Disk from Snapshot)
+            $snapshot = Get-AzSnapshot -ResourceGroupName $resourceGroup -SnapshotName "MyOSDiskSnapshot"
+            $diskConfig = New-AzDiskConfig -AccountType Premium_LRS -CreateOption Copy -SourceResourceId $snapshot.Id
+            $osDisk = New-AzDisk -ResourceGroupName $resourceGroup -DiskName "RestoredOSDisk" -Disk $diskConfig
+
+        # Attach the Restored Disk to a New VM
+            $vmConfig = New-AzVMConfig -VMName "RestoredVM" -VMSize "Standard_DS1_v2" | `
+            Set-AzVMOSDisk -ManagedDiskId $osDisk.Id -CreateOption Attach -Windows -DiskSizeInGB 128
+            New-AzVM -ResourceGroupName $resourceGroup -Location $location -VM $vmConfig
+
+# 5. VM Networking
+
+    # 1. Managing VM Networking
+
+        # Get Public IP Address of a VM
+            Get-AzPublicIpAddress -ResourceGroupName $resourceGroup | Where-Object { $_.IpConfiguration.Id -like "*$vmName*" }
+
+        # Add an Inbound Rule to Allow RDP (Port 3389) or SSH (Port 22)
+            $nsg = Get-AzNetworkSecurityGroup -ResourceGroupName $resourceGroup -Name "MyNSG"
+            $rule = New-AzNetworkSecurityRuleConfig -Name "Allow-RDP" -Protocol Tcp -Direction Inbound -Priority 1000 -SourceAddressPrefix * -SourcePortRange * -DestinationAddressPrefix * -DestinationPortRange 3389 -Access Allow
+            $nsg.SecurityRules.Add($rule)
+            Set-AzNetworkSecurityGroup -NetworkSecurityGroup $nsg
+
+        # Remove Inbound Rule for RDP (Port 3389) or SSH (Port 22)
+            $nsg.SecurityRules.Remove($nsg.SecurityRules | Where-Object { $_.Name -eq "Allow-RDP" })
+            Set-AzNetworkSecurityGroup -NetworkSecurityGroup $nsg

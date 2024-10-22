@@ -1,0 +1,106 @@
+# 1. User Account Management
+
+    # Create a New Local User
+        New-LocalUser -Name "username" -Password (ConvertTo-SecureString "Password123" -AsPlainText -Force) -FullName "Full Name" -Description "User description"
+        
+    # Set/Change User Password
+        $password = Read-Host -AsSecureString
+        Set-LocalUser -Name "username" -Password $password
+        
+    # Delete a User
+        Remove-LocalUser -Name "username"
+        
+    # Modify User Information
+        Set-LocalUser -Name "username" -FullName "New Full Name" -Description "New Description"
+        
+    # Disable/Enable User Accounts
+        Disable-LocalUser -Name "username"                 # Disable user account
+        Enable-LocalUser -Name "username"                  # Enable user account
+
+    # Rename a User
+        Rename-LocalUser -Name "old_username" -NewName "new_username"
+        
+# 2. Group Management
+
+    # Create a New Group
+        New-LocalGroup -Name "groupname" -Description "Group Description"
+        
+    # Add/Remove Users from a Group
+        Add-LocalGroupMember -Group "groupname" -Member "username"
+        Remove-LocalGroupMember -Group "groupname" -Member "username"
+        
+    # Delete a Group
+        Remove-LocalGroup -Name "groupname"
+
+    # List Groups for a User
+        Get-LocalGroup -Member "username"
+        
+# 3. User and Group Information
+
+    # View User Information
+        Get-LocalUser -Name "username"                     # Show user information
+        Get-LocalUser                                     # List all users
+        Get-LocalUser | Where-Object {$_.Enabled -eq $false} # Show disabled users
+
+    # View Group Information
+        Get-LocalGroup                                    # List all groups
+        Get-LocalGroupMember -Group "groupname"           # List members of a group
+        
+# 4. File and Directory Permissions
+
+    # View File Permissions
+        Get-Acl "C:\path\to\file"                         # Show file permissions
+
+    # Change File Ownership and Permissions
+        $acl = Get-Acl "C:\path\to\file"
+        $acl.SetOwner([System.Security.Principal.NTAccount]"username")
+        Set-Acl -Path "C:\path\to\file" -AclObject $acl
+
+    # Set File Permissions (Grant/Remove)
+        $acl = Get-Acl "C:\path\to\file"
+        $rule = New-Object System.Security.AccessControl.FileSystemAccessRule("username","FullControl","Allow")
+        $acl.AddAccessRule($rule)
+        Set-Acl -Path "C:\path\to\file" -AclObject $acl
+
+        # To remove permissions:
+        $acl.RemoveAccessRule($rule)
+        Set-Acl -Path "C:\path\to\file" -AclObject $acl
+        
+# 5. Sudo/Administrator Privileges Management
+
+    # Add User to Administrators Group
+        Add-LocalGroupMember -Group "Administrators" -Member "username"
+        
+    # Remove User from Administrators Group
+        Remove-LocalGroupMember -Group "Administrators" -Member "username"
+
+# 6. User Activity Monitoring
+
+    # Show Currently Logged-In Users
+        quser                                             # Show users logged in to the system
+
+    # Show User Login History
+        Get-EventLog -LogName "Security" -InstanceId 4624  # Filter logins by event ID (4624 - Successful login)
+
+    # Monitor User's Command History (via PowerShell)
+        Get-History                                       # Show PowerShell command history
+
+# 7. User and Group Quotas (Disk Usage Limits)
+
+    # View Disk Quota
+        fsutil quota query C:                             # Query disk quota on drive C:
+
+    # Enable Disk Quota on a Volume
+        fsutil quota enforce C:                           # Enforce quota on drive C:
+
+    # Set Disk Quota for a User
+        fsutil quota modify C: 1000000000 "DOMAIN\username"  # Set quota limit for a user (e.g., 1GB)
+
+# 8. User Account Security
+
+    # Force User to Change Password at Next Login
+        Set-LocalUser -Name "username" -PasswordNeverExpires $false
+        
+    # Lock/Unlock User Account
+        Set-LocalUser -Name "username" -AccountUnlocked $false  # Lock user
+        Set-LocalUser -Name "username" -AccountUnlocked $true   # Unlock user

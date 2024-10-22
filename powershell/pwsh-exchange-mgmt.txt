@@ -1,0 +1,234 @@
+# 1. Connecting to Exchange Online
+
+    # Install Exchange Online PowerShell module (EXO V2 Module)
+        Install-Module -Name ExchangeOnlineManagement -Force
+
+    # Connect to Exchange Online
+        Connect-ExchangeOnline -UserPrincipalName yourUPN@domain.com -ShowProgress $true
+
+    # Disconnect from Exchange Online
+        Disconnect-ExchangeOnline -Confirm:$false
+
+# 2. Mailbox Management
+
+    # 1. Managing Mailboxes
+
+        # Get a List of All Mailboxes
+            Get-Mailbox
+
+        # Get a Specific Mailbox
+            Get-Mailbox -Identity user@domain.com
+
+        # Create a New Mailbox (also creates the user)
+            New-Mailbox -UserPrincipalName user@domain.com -Alias user -FirstName User -LastName Example -DisplayName "User Example" -Password (ConvertTo-SecureString 'password' -AsPlainText -Force)
+
+        # Remove a Mailbox
+            Remove-Mailbox -Identity user@domain.com
+
+        # Disable a Mailbox
+            Disable-Mailbox -Identity user@domain.com
+
+        # Convert a Mailbox to Shared
+            Set-Mailbox -Identity user@domain.com -Type Shared
+
+        # Set Mailbox Size Limits
+            Set-Mailbox -Identity user@domain.com -ProhibitSendQuota 1GB -ProhibitSendReceiveQuota 1.5GB -IssueWarningQuota 1GB
+
+        # View Mailbox Size and Quota Usage
+            Get-MailboxStatistics -Identity user@domain.com | Select DisplayName,TotalItemSize,ItemCount
+
+        # View All Mailboxes with Quota Usage
+            Get-Mailbox | Get-MailboxStatistics | Select DisplayName,TotalItemSize,ItemCount
+
+    # 2. Managing Mailbox Permissions
+
+        # Grant Full Access to a Mailbox
+            Add-MailboxPermission -Identity user@domain.com -User admin@domain.com -AccessRights FullAccess -InheritanceType All
+
+        # Remove Full Access from a Mailbox
+            Remove-MailboxPermission -Identity user@domain.com -User admin@domain.com -AccessRights FullAccess
+
+        # Grant Send As Permission
+            Add-RecipientPermission -Identity user@domain.com -Trustee admin@domain.com -AccessRights SendAs
+
+        # Remove Send As Permission
+            Remove-RecipientPermission -Identity user@domain.com -Trustee admin@domain.com -AccessRights SendAs
+
+# 3. Distribution Group Management
+
+    # 1. Managing Distribution Groups
+
+        # Get a List of Distribution Groups
+            Get-DistributionGroup
+
+        # Get a Specific Distribution Group
+            Get-DistributionGroup -Identity "Group Name"
+
+        # Create a New Distribution Group
+            New-DistributionGroup -Name "Group Name" -PrimarySmtpAddress group@domain.com
+
+        # Remove a Distribution Group
+            Remove-DistributionGroup -Identity "Group Name"
+
+        # Add Members to a Distribution Group
+            Add-DistributionGroupMember -Identity "Group Name" -Member user@domain.com
+
+        # Remove Members from a Distribution Group
+            Remove-DistributionGroupMember -Identity "Group Name" -Member user@domain.com
+
+    # 2. Managing Distribution Group Permissions
+
+        # Grant Send As Permissions for a Distribution Group
+            Add-RecipientPermission -Identity "Group Name" -Trustee user@domain.com -AccessRights SendAs
+
+        # Remove Send As Permissions for a Distribution Group
+            Remove-RecipientPermission -Identity "Group Name" -Trustee user@domain.com -AccessRights SendAs
+
+        # Grant Send On Behalf Permissions
+            Set-DistributionGroup -Identity "Group Name" -GrantSendOnBehalfTo user@domain.com
+
+# 4. Shared Mailbox Management
+
+    # 1. Managing Shared Mailboxes
+
+        # Create a New Shared Mailbox
+            New-Mailbox -Name "Shared Mailbox" -Shared -PrimarySmtpAddress shared@domain.com
+
+        # Get a List of Shared Mailboxes
+            Get-Mailbox -RecipientTypeDetails SharedMailbox
+
+        # Convert a Regular Mailbox to a Shared Mailbox
+            Set-Mailbox -Identity user@domain.com -Type Shared
+
+        # Remove a Shared Mailbox
+            Remove-Mailbox -Identity shared@domain.com
+
+    # 2. Managing Shared Mailbox Permissions
+
+        # Grant Full Access to a Shared Mailbox
+            Add-MailboxPermission -Identity shared@domain.com -User user@domain.com -AccessRights FullAccess -InheritanceType All
+
+        # Remove Full Access from a Shared Mailbox
+            Remove-MailboxPermission -Identity shared@domain.com -User user@domain.com -AccessRights FullAccess
+
+        # Grant Send As Permissions for a Shared Mailbox
+            Add-RecipientPermission -Identity shared@domain.com -Trustee user@domain.com -AccessRights SendAs
+
+# 5. Mail Flow Management
+
+    # 1. Mail Flow Rules (Transport Rules)
+
+        # View All Mail Flow Rules
+            Get-TransportRule
+
+        # Create a New Mail Flow Rule
+            New-TransportRule -Name "Block Email to Domain" -SentToScope NotInOrganization -SentTo "domain.com" -RejectMessageReasonText "External emails are not allowed."
+
+        # Modify an Existing Mail Flow Rule
+            Set-TransportRule -Identity "Block Email to Domain" -SentTo "newdomain.com"
+
+        # Remove a Mail Flow Rule
+            Remove-TransportRule -Identity "Block Email to Domain"
+
+    # 2. Message Tracking
+
+        # Track Messages Sent by a Specific User
+            Get-MessageTrace -Sender user@domain.com
+
+        # Track Messages Received by a Specific User
+            Get-MessageTrace -Recipient user@domain.com
+
+        # View Detailed Message Tracking
+            Get-MessageTrace -Sender user@domain.com -StartDate "01/01/2024" -EndDate "01/05/2024" | Get-MessageTraceDetail
+
+        # Export Message Trace to CSV
+            Get-MessageTrace -Sender user@domain.com | Export-Csv -Path "C:\Logs\MessageTrace.csv" -NoTypeInformation
+
+# 6. Mobile Device Management (Exchange ActiveSync)
+
+    # 1. Managing Mobile Devices
+
+        # Get All Mobile Devices Associated with a User
+            Get-MobileDevice -Mailbox user@domain.com
+
+        # Wipe a Mobile Device
+            Clear-MobileDevice -Identity deviceID -NotificationEmailAddresses admin@domain.com
+
+        # Get Mobile Device Statistics
+            Get-MobileDeviceStatistics -Mailbox user@domain.com
+
+        # Remove a Mobile Device Partnership
+            Remove-MobileDevice -Identity deviceID
+
+# 7. Compliance and Auditing
+
+    # 1. In-Place Hold and Litigation Hold
+
+        # Enable In-Place Hold
+            Set-Mailbox -Identity user@domain.com -LitigationHoldEnabled $true
+
+        # Disable In-Place Hold
+            Set-Mailbox -Identity user@domain.com -LitigationHoldEnabled $false
+
+        # Set Litigation Hold Duration
+            Set-Mailbox -Identity user@domain.com -LitigationHoldDuration 365
+
+        # Check Litigation Hold Status
+            Get-Mailbox -Identity user@domain.com | Select-Object LitigationHoldEnabled, LitigationHoldDuration
+
+    # 2. Audit Log Management
+
+        # Search Mailbox Audit Logs
+            Search-MailboxAuditLog -Mailboxes user@domain.com -StartDate "01/01/2024" -EndDate "01/05/2024"
+
+        # Enable Mailbox Audit Logging
+            Set-Mailbox -Identity user@domain.com -AuditEnabled $true
+
+        # View Mailbox Audit Settings
+            Get-Mailbox -Identity user@domain.com | Select-Object AuditEnabled, AuditLogAgeLimit
+
+    # 3. eDiscovery Searches
+
+        # Create a New eDiscovery Search
+            New-MailboxSearch -Name "Legal Case Search" -SourceMailboxes "user@domain.com" -SearchQuery 'subject:"Confidential"' -TargetMailbox "admin@domain.com"
+
+        # Start an eDiscovery Search
+            Start-MailboxSearch -Identity "Legal Case Search"
+
+        # Remove an eDiscovery Search
+            Remove-MailboxSearch -Identity "Legal Case Search"
+
+# 8. Retention Policies
+
+    # 1. Managing Retention Policies
+
+        # Get All Retention Policies
+            Get-RetentionPolicy
+
+        # Create a New Retention Policy
+            New-RetentionPolicy -Name "1 Year Retention" -RetentionPolicyTagLinks "Default 1 Year"
+
+        # Assign a Retention Policy to a Mailbox
+            Set-Mailbox -Identity user@domain.com -RetentionPolicy "1 Year Retention"
+
+        # Remove a Retention Policy
+            Remove-RetentionPolicy -Identity "1 Year Retention"
+
+        # Get Retention Policy for a Specific Mailbox
+            Get-Mailbox -Identity user@domain.com | Select-Object RetentionPolicy
+
+# 9. Managing Mailbox Archives
+
+    # 1. Archiving Mailboxes
+
+        # Enable Archive Mailbox
+            Enable-Mailbox -Identity user@domain.com -Archive
+
+        # Disable Archive Mailbox
+            Disable-Mailbox -Identity user@domain.com -Archive
+
+        # Get All Mailboxes with Archive Enabled
+            Get-Mailbox -Archive
+
+        # Set Archive Quota for a Mailbox
+            Set-Mailbox -Identity user@domain.com -ArchiveQuota 50GB -ArchiveWarningQuota 45GB

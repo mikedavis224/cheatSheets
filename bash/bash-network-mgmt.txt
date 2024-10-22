@@ -1,0 +1,176 @@
+# 1. Basic Network Configuration
+
+    # Check Network Interfaces and IP Addresses
+        ip addr show                                 # Show network interfaces and IP addresses
+        ifconfig                                     # Show network interfaces (older command)
+        ip link show                                 # Show interface status (up/down)
+        ip route                                     # Show routing table
+        nmcli device status                          # Show network status using NetworkManager
+
+    # Bring Network Interface Up/Down
+        sudo ip link set eth0 up                     # Bring up interface eth0
+        sudo ip link set eth0 down                   # Bring down interface eth0
+
+    # Assign Static IP Address
+        sudo ip addr add 192.168.1.100/24 dev eth0    # Assign static IP to interface eth0
+        sudo ip addr del 192.168.1.100/24 dev eth0    # Remove IP from interface eth0
+
+    # Check Network Connection
+        ping google.com                              # Ping a domain to check network connection
+        ping -c 4 google.com                         # Ping a domain 4 times
+        traceroute google.com                        # Trace the route to a domain
+        sudo traceroute -I google.com                # ICMP traceroute (use sudo on Linux)
+        curl ifconfig.me                             # Get your public IP address using curl
+
+    # Restart Networking Services
+        sudo systemctl restart networking            # Restart networking service (Ubuntu/Debian)
+        sudo systemctl restart NetworkManager        # Restart NetworkManager service
+
+# 2. Network Interface Configuration Files
+
+    # For Static IP in Ubuntu/Debian (Netplan)
+        sudo nano /etc/netplan/00-installer-config.yaml
+        # Example static IP configuration:
+        network:
+            version: 2
+            ethernets:
+                eth0:
+                    dhcp4: no
+                    addresses: [192.168.1.100/24]
+                    gateway4: 192.168.1.1
+                    nameservers:
+                        addresses: [8.8.8.8, 8.8.4.4]
+        sudo netplan apply                           # Apply network changes
+
+    # For Static IP in CentOS/RedHat (Network Scripts)
+        sudo nano /etc/sysconfig/network-scripts/ifcfg-eth0
+        # Example static IP configuration:
+        DEVICE=eth0
+        BOOTPROTO=static
+        ONBOOT=yes
+        IPADDR=192.168.1.100
+        NETMASK=255.255.255.0
+        GATEWAY=192.168.1.1
+        DNS1=8.8.8.8
+        DNS2=8.8.4.4
+        sudo systemctl restart network               # Restart network service (CentOS/RHEL)
+
+# 3. DNS Management and Troubleshooting
+
+    # Check DNS Configuration
+        cat /etc/resolv.conf                         # View DNS server configuration
+        nmcli dev show | grep 'IP4.DNS'              # Check DNS servers using NetworkManager
+
+    # Query DNS Records
+        dig example.com                              # Query A record for a domain
+        dig example.com MX                           # Query MX records for a domain
+        dig example.com NS                           # Query NS records for a domain
+        nslookup example.com                         # Basic DNS lookup
+
+    # Test DNS Resolution
+        host example.com                             # Lookup IP address for a domain
+        dig +short example.com                       # Get just the IP for a domain
+
+    # Flush DNS Cache
+        sudo systemd-resolve --flush-caches          # Flush DNS cache (Ubuntu with systemd)
+        sudo /etc/init.d/dns-clean restart           # Flush DNS cache (older Ubuntu/Debian)
+        sudo systemctl restart systemd-resolved      # Restart DNS service
+
+# 4. Network Monitoring
+
+    # View Network Traffic Statistics
+        ip -s link                                   # Show traffic statistics for interfaces
+        ifconfig eth0                                # Show traffic statistics for a specific interface
+        netstat -i                                   # Network interface statistics
+
+    # Check Active Connections and Listening Ports
+        sudo netstat -tuln                           # Show active listening ports
+        sudo ss -tuln                                # Show listening sockets (alternative to netstat)
+        sudo lsof -i                                 # List open files related to network (ports)
+        sudo lsof -iTCP -sTCP:LISTEN                 # Show listening TCP ports
+
+    # Monitor Network Traffic in Real-Time
+        sudo iftop                                   # Real-time network bandwidth monitoring (install via package manager)
+        sudo nload                                   # Real-time bandwidth usage (install via package manager)
+        sudo bmon                                    # Real-time bandwidth monitor (install via package manager)
+        sudo vnstat                                  # Network traffic monitoring per interface
+
+    # Monitor Detailed Network Connections
+        sudo iptraf-ng                               # Real-time network monitoring with detailed info (install via package manager)
+        sudo tcpdump -i eth0                         # Capture packets on interface eth0 (network traffic sniffing)
+        sudo tcpdump -i eth0 port 80                 # Capture packets on port 80 (HTTP traffic)
+
+# 5. Firewall Management
+
+    # UFW (Uncomplicated Firewall) - Ubuntu/Debian
+        sudo ufw status                              # Check UFW status
+        sudo ufw enable                              # Enable UFW firewall
+        sudo ufw disable                             # Disable UFW firewall
+        sudo ufw allow 22                            # Allow SSH (port 22)
+        sudo ufw allow 80                            # Allow HTTP (port 80)
+        sudo ufw allow 443                           # Allow HTTPS (port 443)
+        sudo ufw deny 8080                           # Deny access to port 8080
+        sudo ufw status verbose                      # View detailed UFW status
+
+    # FirewallD - CentOS/RedHat
+        sudo firewall-cmd --state                    # Check if FirewallD is running
+        sudo systemctl start firewalld               # Start FirewallD service
+        sudo firewall-cmd --permanent --add-port=22/tcp   # Allow SSH (port 22)
+        sudo firewall-cmd --permanent --add-service=http   # Allow HTTP
+        sudo firewall-cmd --permanent --add-service=https  # Allow HTTPS
+        sudo firewall-cmd --reload                   # Reload firewall rules
+
+    # IP Tables (Low-level firewall configuration)
+        sudo iptables -L                             # List all firewall rules
+        sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT   # Allow SSH (port 22)
+        sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT   # Allow HTTP (port 80)
+        sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT  # Allow HTTPS (port 443)
+        sudo iptables -A INPUT -j DROP               # Drop all other incoming connections
+
+# 6. VPN Configuration and Management
+
+    # Install OpenVPN (Ubuntu/Debian)
+        sudo apt install openvpn easy-rsa             # Install OpenVPN and Easy-RSA
+
+    # OpenVPN Basic Setup
+        sudo openvpn --config /etc/openvpn/server.conf  # Start OpenVPN with configuration file
+        sudo systemctl start openvpn@server            # Start OpenVPN service
+        sudo systemctl enable openvpn@server           # Enable OpenVPN to start on boot
+
+    # Check OpenVPN Status
+        sudo systemctl status openvpn@server           # Check OpenVPN service status
+        tail -f /var/log/openvpn.log                   # Monitor OpenVPN logs in real-time
+
+# 7. SSH and Remote Management
+
+    # SSH Connection Basics
+        ssh user@hostname                             # SSH to a remote host
+        ssh -p 2222 user@hostname                     # SSH to a remote host with a custom port
+
+    # Copy Files Over SSH (SCP)
+        scp file.txt user@remote:/path/to/destination  # Copy file to remote server
+        scp -r /path/to/local/dir user@remote:/path/to/destination  # Copy directory to remote server
+
+    # SSH Key Management
+        ssh-keygen                                    # Generate SSH key pair
+        ssh-copy-id user@remote_host                  # Copy public key to a remote server for passwordless login
+
+    # Test SSH Configuration
+        sudo sshd -t                                  # Test SSH configuration for syntax errors
+        sudo systemctl restart ssh                    # Restart SSH service
+
+# 8. Network Troubleshooting Tools
+
+    # Check Network Performance (iperf)
+        iperf -s                                      # Start iperf in server mode
+        iperf -c <server_ip>                          # Run iperf in client mode to test bandwidth
+
+    # Check Network Route
+        mtr google.com                                # Continuous traceroute and ping (real-time)
+
+    # Check ARP Cache
+        arp -a                                        # Display ARP cache entries
+
+    # Check Internet Speed from Command Line
+        speedtest-cli                                 # Run a speed test from the terminal (install via package manager)
+
