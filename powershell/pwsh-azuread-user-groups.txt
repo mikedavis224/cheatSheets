@@ -53,7 +53,7 @@
             Add-AzureADGroupMember -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId -RefObjectId (Get-AzureADUser -ObjectId user@domain.com).ObjectId
 
         # Remove a User from a Group
-            Remove-AzureADGroupMember -ObjectId (Get-AzureADGroup -SearchString "Group Name").ObjectId -MemberId (Get-AzureADUser -ObjectId user@domain.com).ObjectId
+            
 
         # Get All Groups a User is a Member Of
             Get-AzureADUserMembership -ObjectId user@domain.com
