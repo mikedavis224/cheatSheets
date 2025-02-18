@@ -1,0 +1,108 @@
+# Azure AD (Entra ID) User Management PowerShell Cheatsheet
+
+## Prerequisites
+# Install Microsoft Graph PowerShell module and connect
+Install-Module Microsoft.Graph -Scope CurrentUser -Force
+Import-Module Microsoft.Graph
+Connect-MgGraph -Scopes "User.Read.All", "Group.Read.All", "AuditLog.Read.All"
+
+# (Optional) Install and connect using the AzureAD module (deprecated but still used)
+Install-Module -Name AzureAD -Force
+Import-Module AzureAD
+Connect-AzureAD
+
+
+## User Management
+
+# Get all users
+Get-MgUser -All | Select-Object DisplayName, UserPrincipalName, Mail, Id
+
+# Get a specific user by User Principal Name (UPN)
+Get-MgUser -UserId "user@domain.com"
+
+# Get a user’s details including job title & department
+Get-MgUser -UserId "user@domain.com" | Select-Object DisplayName, UserPrincipalName, JobTitle, Department
+
+# Get a user’s license information
+Get-MgUserLicenseDetail -UserId "user@domain.com"
+
+
+## User Authentication and Sign-ins
+
+# Get last sign-in date of a user
+Get-MgAuditLogSignIn -Filter "UserPrincipalName eq 'user@domain.com'" | Sort-Object CreatedDateTime -Descending | Select-Object -First 1 UserPrincipalName, CreatedDateTime
+
+# Get last login for all users
+Get-MgAuditLogSignIn -All | Sort-Object CreatedDateTime -Descending | Select-Object UserPrincipalName, CreatedDateTime
+
+
+## User Management Actions
+
+# Create a new user
+New-MgUser -DisplayName "John Doe" -UserPrincipalName "johndoe@domain.com" -MailNickname "johndoe" -PasswordProfile @{ Password="TempPassword123!" } -AccountEnabled $true
+
+# Reset a user’s password
+Update-MgUser -UserId "user@domain.com" -PasswordProfile @{ Password="NewSecurePassword123!" }
+
+# Disable a user account
+Update-MgUser -UserId "user@domain.com" -AccountEnabled $false
+
+# Delete a user
+Remove-MgUser -UserId "user@domain.com"
+
+
+## Group Membership Management
+
+# List all groups
+Get-MgGroup -All | Select-Object DisplayName, Id
+
+# Get all groups a user is a member of
+Get-MgUserMemberOf -UserId "user@domain.com"
+
+# Get all users in a specific group
+Get-MgGroupMember -GroupId "Group-ID-Here" | Select-Object Id, DisplayName, UserPrincipalName
+
+# Add a user to a group
+New-MgGroupMember -GroupId "Group-ID-Here" -DirectoryObjectId (Get-MgUser -UserId "user@domain.com").Id
+
+# Remove a user from a group
+Remove-MgGroupMember -GroupId "Group-ID-Here" -DirectoryObjectId (Get-MgUser -UserId "user@domain.com").Id
+
+
+## Exporting and Reporting
+
+# Export all users to a CSV file
+Get-MgUser -All | Select-Object DisplayName, UserPrincipalName, Mail | Export-Csv -Path "C:\Users\ExportedUsers.csv" -NoTypeInformation
+
+# Export group membership to CSV
+$GroupId = "Group-ID-Here"
+Get-MgGroupMember -GroupId $GroupId | Select-Object DisplayName, UserPrincipalName | Export-Csv -Path "C:\Users\GroupMembers.csv" -NoTypeInformation
+
+# Export last login report for all users
+Get-MgAuditLogSignIn -All | Sort-Object CreatedDateTime -Descending | Select-Object UserPrincipalName, CreatedDateTime | Export-Csv -Path "C:\Users\LastSignInReport.csv" -NoTypeInformation
+
+
+## Bulk User Management
+
+# Bulk add users to a group from a CSV
+# Prepare a CSV file "C:\UsersToAdd.csv" with the following format:
+# UserPrincipalName
+# user1@domain.com
+# user2@domain.com
+
+$GroupId = "Group-ID-Here"
+$Users = Import-Csv -Path "C:\UsersToAdd.csv"
+
+foreach ($User in $Users) {
+    $UserId = (Get-MgUser -UserId $User.UserPrincipalName).Id
+    New-MgGroupMember -GroupId $GroupId -DirectoryObjectId $UserId
+}
+
+
+## Security & Compliance
+
+# Get users with admin roles
+Get-MgRoleManagementDirectoryRoleAssignment | Select-Object RoleDefinitionId, PrincipalId
+
+# Find users with MFA enabled
+Get-MgUser -All | Where-Object { $_.StrongAuthenticationRequirements -ne $null } | Select-Object DisplayName, UserPrincipalName
