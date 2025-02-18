@@ -1,0 +1,12 @@
+#Query Installed 32bit + 64bit Applications from the Registry
+
+$apps64 = Get-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
+$apps32 = Get-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+$allApps = $apps64 + $apps32 | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate
+$allApps
+
+#Retreive the Uninstall String
+Get-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" |
+Where-Object { $_.DisplayName -like "*Application Name*" } |
+Select-Object DisplayName, UninstallString
+
